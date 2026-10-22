@@ -1073,6 +1073,23 @@ svg.leaflet-image-layer.leaflet-interactive path {
 #tourPop.sheet{left:10px!important;right:10px;bottom:max(10px,env(safe-area-inset-bottom,0px));top:auto!important;width:auto!important;transition:none}
 #tourSpot{transition:none}
 
+/* Indicadors */
+.ind-how{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.ind-how div{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:3px}
+.ind-how b{color:var(--red);font-size:.88rem} .ind-how span{font-size:.8rem;color:var(--ink-2)}
+.ind-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,380px),1fr));gap:14px}
+.indc{gap:8px}
+.indc.on{box-shadow:0 0 0 2px var(--red) inset}
+.indc-h{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.indc-q{margin:0;font-size:.9rem}
+.indc-meta{display:flex;flex-direction:column;gap:3px;font-size:.78rem;color:var(--ink-2)}
+.indc-d summary{cursor:pointer;font-weight:700;font-size:.84rem;color:var(--red-ink)}
+.indc-d p{font-size:.84rem;margin:.4em 0}
+.indc-vals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.indc-vals input{padding:7px 9px;font-size:.84rem}
+.indc-auto{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;background:var(--ok-soft);border-radius:8px;padding:8px 10px;font-size:.8rem}
+@media (max-width:820px){.ind-how{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
 /* Factors */
 button.code{border:0;cursor:pointer;font-family:var(--f-body)}
 button.code:hover{outline:2px solid var(--red-line)}
@@ -2731,13 +2748,125 @@ function budgetTotals(id){
   (bp.extra||[]).forEach(x=>{ if(x.rec) rec+=+x.v||0; else ini+=+x.v||0; });
   return {ini, rec};
 }
+/* Ajuda per entendre i calcular cada indicador */
+const pctTxt = v => v==null ? null : Math.round(v)+"%";
+const IND_HELP = [
+  {re:/repartiment modal|quota modal|alumnes a peu|% de famílies en cotxe|arriben en bici|com arribeu/i, u:"% per mode",
+   q:"Quina part dels infants arriba a peu, en bici, en transport públic o en cotxe.",
+   c:"Compteu els infants que arriben amb cada mode (o pregunteu «com has vingut avui?» a cada classe) i dividiu per al total. Feu-ho 2–3 dies de la mateixa setmana i feu la mitjana.",
+   ex:"45% a peu · 8% bici · 7% TP · 40% cotxe",
+   auto:()=>{ const st=surveyStats(); if(st.n<5) return null; const m=st.modal; return `${pctTxt(m.peu)} a peu · ${pctTxt(m.bici)} bici · ${pctTxt((m.tp||0)+(m.bus||0))} TP/bus · ${pctTxt(m.cotxe)} cotxe`; }, src:"enquesta a famílies"},
+  {re:/assumible a peu|<\s?500|0–1,5 km|trajectes cotxe en radi/i, u:"%",
+   q:"Famílies que viuen prou a prop per anar a peu però que fan servir el cotxe. És el marge de canvi més clar.",
+   c:"A l'enquesta, agafeu les famílies que tarden menys de 10 minuts a peu (pregunta 1.4) i calculeu quantes van en cotxe (pregunta 2.1).",
+   ex:"35% (12 de 34 famílies)",
+   auto:()=>{ const st=surveyStats(); return st.nearCar.n ? `${pct(st.nearCar.car,st.nearCar.n)}% (${st.nearCar.car} de ${st.nearCar.n})` : null; }, src:"enquesta a famílies"},
+  {re:/sols|autonomia|grau d'autonomia/i, u:"%",
+   q:"Infants que fan el trajecte sense un adult de la família (sols o amb companys).",
+   c:"Enquesta (pregunta 2.2: «va sol o sola») i, si podeu, observació a l'entrada un dia tipus. Separeu-ho per cicles: és normal que sigui més alt a cicle superior.",
+   ex:"12% a primària; 30% a 5è–6è",
+   auto:()=>{ const st=surveyStats(); const q=st.q.s22; return q&&q.tot ? `${pct(q.c.a||0,q.tot)}% van sols` : null; }, src:"enquesta a famílies"},
+  {re:/puntuació del bloc/i, u:"punts",
+   q:"La puntuació del treball de camp en trànsit, aparcament i passos de vianants.",
+   c:"Repetiu el qüestionari de treball de camp amb les mateixes condicions (hora punta, època de l'any) i compareu el total del bloc Cotxe i aparcament.",
+   ex:"3/8 → 6/8",
+   auto:()=>{ const b=scores().blocs[4]; return b.total!=null ? `${b.total}/8` : null; }, src:"treball de camp"},
+  {re:/doble fila|volum de (trànsit|vehicles)|vehicles a l'entorn|congestió|aparcament il·legal|reducció de cotxes/i, u:"vehicles",
+   q:"Quants cotxes passen o s'aturen malament a l'entorn de l'escola en hora punta.",
+   c:"Compteu durant 15–20 minuts abans de l'entrada: vehicles que passen, que paren en doble fila i que aparquen sobre la vorera o el pas. Mateix lloc i hora cada vegada; apunteu el dia i el temps que fa.",
+   ex:"18 en doble fila · 64 vehicles en 20 min"},
+  {re:/minuts.*activitat física|activitat física diària|temps mitjà del tram/i, u:"min/dia",
+   q:"Minuts d'activitat física que el trajecte aporta a cada infant que va a peu o en bici.",
+   c:"Minuts = temps a peu del trajecte × 2 (anada i tornada). Feu la mitjana entre els infants que van a peu o en bici. L'OMS recomana 60 minuts diaris d'activitat per als infants.",
+   ex:"18 min/dia de mitjana",
+   auto:()=>{ const st=surveyStats(); const R=S.survey.resp.filter(r=>r.s21==="a"||r.s21==="b"); if(R.length<3) return null; const mid={a:3,b:7.5,c:15,d:25}; const v=R.map(r=>mid[r.s14]).filter(Boolean); return v.length ? `≈ ${Math.round(v.reduce((x,y)=>x+y,0)/v.length*2)} min/dia` : null; }, src:"enquesta (temps a peu × 2)"},
+  {re:/percepció de seguretat|seguretat percebuda|seguretat i temps|et sents segur|confiança/i, u:"mitjana 1–5",
+   q:"Com de segurs veuen els carrers les famílies (i, si podeu, l'alumnat).",
+   c:"Pregunta d'escala 1 a 5. Calculeu la mitjana i el % de respostes 4 i 5.",
+   ex:"2,6 → 3,4",
+   auto:()=>{ const q=surveyStats().q.s62; return q&&q.mean ? `${q.mean.toFixed(1).replace(".",",")} sobre 5` : null; }, src:"enquesta (pregunta 6.2)"},
+  {re:/satisfacció|valoració mitjana|valoració de famílies|acceptació|valoració global|comoditat, estrès/i, u:"mitjana 1–5",
+   q:"Com valoren la mesura les persones que l'han viscut.",
+   c:"Afegiu a l'enquesta anual (o a una enquesta breu al final del pilot) una pregunta de 1 a 5 i una pregunta oberta «què milloraries?».",
+   ex:"4,1 sobre 5"},
+  {re:/no2|no₂|qualitat de l'aire/i, u:"µg/m³",
+   q:"Concentració de diòxid de nitrogen, el contaminant més lligat al trànsit.",
+   c:"Tubs de difusió passiva o sensors a la porta i en un carrer de control, mínim un mes abans i un mes durant el pilot, a la mateixa època de l'any. El valor guia anual de l'OMS és de 10 µg/m³.",
+   ex:"38 → 29 µg/m³"},
+  {re:/usuaris|participants|inscrits|nombre d'infants|famílies participants|préstecs per bic|ocupació|places ocupades/i, u:"persones",
+   q:"Quanta gent fa servir el servei.",
+   c:"Porteu un registre senzill (full de càlcul) de cada sortida o préstec: data, participants i incidències. Doneu el total del curs i la mitjana per dia o per setmana.",
+   ex:"14 infants/dia · 32 préstecs al curs"},
+  {re:/incidències|incidents|queixes/i, u:"nombre",
+   q:"Problemes registrats: retards, avaries, conflictes, queixes.",
+   c:"Un formulari curt o una línia al full de registre cada vegada que passa alguna cosa. Reviseu-les a cada reunió de la comissió.",
+   ex:"3 incidències al trimestre"},
+  {re:/cotxes evitats|substitució de viatges|trajectes en cotxe abans|redueixen el cotxe|reduir l'ús del cotxe|canvi en l'ús del cotxe/i, u:"cotxes/dia",
+   q:"Viatges en cotxe que deixen de fer-se gràcies a la mesura.",
+   c:"Pregunteu a les famílies participants com feien el trajecte abans. Cotxes evitats ≈ infants que abans anaven en cotxe (si són germans, compteu un cotxe per família).",
+   ex:"9 cotxes menys cada dia"},
+  {re:/emissions/i, u:"kg CO₂",
+   q:"Ordre de magnitud de les emissions estalviades.",
+   c:"Km de cotxe evitats al curs × factor d'emissió d'un turisme de referència (per exemple, el de la calculadora de l'Oficina Catalana del Canvi Climàtic).",
+   ex:"≈ 1,2 t CO₂ al curs"},
+  {re:/ús de l'espai|joc/i, u:"observació",
+   q:"Com fan servir l'espai guanyat infants i famílies: si s'aturen, juguen o conversen.",
+   c:"Observeu l'espai 15 minuts a l'entrada i a la sortida. Compteu persones aturades, infants jugant i grups conversant, i anoteu frases dels infants. Fotos amb permís.",
+   ex:"25 persones aturades, 12 infants jugant"},
+  {re:/relacions veïnals|suport mutu|comunitat/i, u:"% / testimonis",
+   q:"Si la mesura crea vincles nous entre famílies i veïnat.",
+   c:"Pregunta a l'enquesta: «Has conegut altres famílies gràcies a…?» (sí/no) i recull de testimonis a les reunions.",
+   ex:"60% han conegut famílies noves"},
+  {re:/sense bici que l'han usat/i, u:"%",
+   q:"Si el servei arriba a qui més el necessita.",
+   c:"Infants sense bici que han fet servir el préstec ÷ infants sense bici detectats a l'enquesta (pregunta 3.4).",
+   ex:"8 de 11 = 73%",
+   auto:()=>{ const st=surveyStats(); return st.n>=5 ? `${Math.round(st.barrier("s34","e"))}% de les famílies no tenen bici` : null; }, src:"enquesta (punt de partida)"},
+  {re:/sé anar en bici/i, u:"%",
+   q:"Infants que se senten capaços d'anar en bici.",
+   c:"Pregunta a l'alumnat abans i després: «Saps anar en bici sense ajuda?». Separeu per cursos.",
+   ex:"62% → 81%"},
+  {re:/volen repetir|interessades a comprar|declaren millora|% de participació/i, u:"% de famílies",
+   q:"Quina part de les famílies participants dona aquesta resposta.",
+   c:"Una pregunta de sí/no a l'enquesta de tancament. Famílies que responen sí ÷ famílies que responen.",
+   ex:"14 de 20 = 70%"},
+  {re:/bicis i patinets aparcats/i, u:"vehicles",
+   q:"Efecte arrossegament: si hi ha més infants que venen en bici o patinet.",
+   c:"Compteu bicis i patinets aparcats al centre un dia tipus cada trimestre, a la mateixa hora.",
+   ex:"12 → 21"},
+  {re:/temps disponible/i, u:"mitjana 1–5",
+   q:"Si les famílies senten que tenen prou temps per fer el trajecte a peu, en bici o en grup.",
+   c:"Mitjana de la pregunta d'escala 1–5 «Tinc prou temps…».",
+   ex:"2,8 → 3,5",
+   auto:()=>{ const q=surveyStats().q.s63; return q&&q.mean ? `${q.mean.toFixed(1).replace(".",",")} sobre 5` : null; }, src:"enquesta (pregunta 6.3)"},
+  {re:/desperts|concentrats/i, u:"valoració",
+   q:"Si els tutors noten que els infants arriben més desperts i tranquils.",
+   c:"Microenquesta de 3 preguntes (1–5) als tutors dels grups participants, cada trimestre, i un comentari obert.",
+   ex:"3,9 sobre 5"},
+  {re:/sense autobús|estalvi/i, u:"% / €",
+   q:"Sortides que s'han fet sense autobús contractat i diners estalviats.",
+   c:"Feu servir el registre de sortides de l'eina «Decidir una sortida»: calcula el % i l'estalvi (300–800 € per sortida).",
+   ex:"6 de 10 sortides · 3.300 €"}
+];
+function indHelp(name){ return IND_HELP.find(h=>h.re.test(name)) || null; }
 function fIndicadors(id,f){
   const p = proj(id); const I = p.ind||{};
-  return `<section class="card"><p class="muted">Combineu dades objectives (recomptes, enquestes) i percepcions (seguretat, satisfacció). Marqueu els que seguireu: apareixeran a Seguiment.</p>
-   <div class="tablewrap"><table class="tbl ind"><thead><tr><th>Indicador</th><th>Com es mesura</th><th>Freqüència</th><th>Inicial</th><th>Objectiu</th><th>Actual</th></tr></thead><tbody>
-   ${f.ind.map((r,i)=>{ const o = I[i]||{}; return `<tr class="${o.on?"":"off"}"><td><label class="chk"><input type="checkbox" data-b="projects.${id}.ind.${i}.on" data-t="bool" data-r="1" ${o.on?"checked":""}><span><small>${r[0]}</small><b>${r[1]}</b></span></label></td><td>${r[2]}</td><td>${r[3]}</td>
-     ${["base","target","actual"].map(k=>`<td><input class="numin" data-b="projects.${id}.ind.${i}.${k}" value="${esc(o[k]??"")}" aria-label="${k}"></td>`).join("")}</tr>`; }).join("")}
-   </tbody></table></div></section>`;
+  return `<section class="card ind-intro">
+    <h2>Com fer servir els indicadors</h2>
+    <div class="ind-how"><div><b>1. Trieu-ne pocs</b><span>2 o 3 que pugueu mesurar cada curs. Marqueu-los i apareixeran a Seguiment.</span></div>
+    <div><b>2. Valor inicial</b><span>Mesureu-lo abans de començar. Sense punt de partida no es pot demostrar el canvi.</span></div>
+    <div><b>3. Objectiu</b><span>Un valor concret i realista per a final de curs (per exemple, «de 18 a 9 cotxes en doble fila»).</span></div>
+    <div><b>4. Valor actual</b><span>Torneu-lo a mesurar igual (mateix lloc, hora i època) i compareu.</span></div></div>
+  </section>
+  <div class="ind-list">${f.ind.map((r,i)=>{ const o = I[i]||{}; const h = indHelp(r[1]+" "+r[2]); const av = h && h.auto ? h.auto() : null;
+    return `<article class="card indc ${o.on?"on":""}">
+      <div class="indc-h"><label class="chk"><input type="checkbox" data-b="projects.${id}.ind.${i}.on" data-t="bool" data-r="1" ${o.on?"checked":""}><span><small>${r[0]}</small><b>${r[1]}</b></span></label>${h?`<span class="pill">${h.u}</span>`:""}</div>
+      ${h?`<p class="indc-q">${h.q}</p>`:""}
+      <div class="indc-meta"><span><b>Com es mesura (guia):</b> ${r[2]}</span><span><b>Freqüència:</b> ${r[3]}</span></div>
+      ${h?`<details class="indc-d"><summary>Com calcular-lo pas a pas</summary><p>${h.c}</p><p class="muted small">Exemple: ${h.ex}</p></details>`:""}
+      <div class="indc-vals">${[["base","Inicial"],["target","Objectiu"],["actual","Actual"]].map(([k,t])=>`<label class="fld"><span>${t}</span><input data-b="projects.${id}.ind.${i}.${k}" value="${esc(o[k]??"")}" placeholder="${k==="base"&&h?"Ex.: "+esc(h.ex.split("→")[0].split("·")[0].trim()):""}"></label>`).join("")}</div>
+      ${av?`<div class="indc-auto"><span>Amb les vostres dades (${h.src}): <b>${av}</b></span><button class="chip sm" data-act="indFill" data-id="${id}" data-i="${i}" data-k="${o.base?"actual":"base"}" data-v="${esc(av)}">Posa-ho com a valor ${o.base?"actual":"inicial"}</button></div>`:""}
+    </article>`; }).join("")}</div>`;
 }
 
 /* ===== 5. PROJECTES ===== */
@@ -3281,6 +3410,7 @@ const ACT = {
     try { const r = csvApply(prep); S.survey.importFile = UI.pendingName; UI.tab.enq = "result"; closeModal(); save(); render(); toast(`${r.ok} ${r.ok===1?"resposta importada":"respostes importades"} · ${r.cols} preguntes relacionades`); } catch(err){ toast(err.message); } },
   synthAdd: el => { const k = el.dataset.k; const cur = (S.com[k]||"").trim(); S.com[k] = (cur?cur+"\n":"") + el.dataset.t; touch(); },
   pageZoom: el => openModal(`<div class="row-actions" style="justify-content:flex-end"><button class="icon-btn" data-act="closeModal" aria-label="Tanca">✕</button></div><img class="gpage-big" src="${el.dataset.src}" alt="Pàgina de la guia">`, true),
+  indFill: el => { setPath(S, `projects.${el.dataset.id}.ind.${el.dataset.i}.${el.dataset.k}`, el.dataset.v); setPath(S, `projects.${el.dataset.id}.ind.${el.dataset.i}.on`, true); touch(`projects.${el.dataset.id}`); },
   askClear: () => { UI.confirmClear = true; render(); },
   cancelClear: () => { UI.confirmClear = false; render(); },
   clearResp: () => { UI.tab.enq = "result"; S.survey.resp = []; delete S.survey.importedAt; delete S.survey.importFile; UI.confirmClear = false; touch(); toast("Respostes esborrades"); },
@@ -3668,7 +3798,10 @@ const TOURS = {
     ...COMMON_END
   ],
   "fitxa:indicadors": [
-    {s:".tbl.ind", t:"Indicadors", d:"Marqueu els que seguireu i apunteu el valor inicial, l'objectiu i l'actual. Apareixeran a Seguiment."},
+    {s:".ind-how", t:"Com funcionen", d:"Quatre passos: trieu-ne pocs, mesureu el valor inicial, fixeu un objectiu i torneu a mesurar."},
+    {s:".indc", t:"Cada indicador", d:"Què mesura, com es mesura segons la guia i la freqüència. Marqueu-lo per seguir-lo."},
+    {s:".indc-d", t:"Pas a pas", d:"Obriu-lo per veure com calcular-lo i un exemple de valor."},
+    {s:".indc-auto", t:"Amb les vostres dades", d:"Quan l'enquesta o el treball de camp ja en donen el valor, el podeu posar amb un clic."},
     ...COMMON_END
   ],
   "fitxa:guia": [

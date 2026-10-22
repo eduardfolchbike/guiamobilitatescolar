@@ -1052,6 +1052,25 @@ svg.leaflet-image-layer.leaflet-interactive path {
 .gpage figcaption{font-size:.75rem;color:var(--ink-3)}
 .gpage-big{width:100%;height:auto;border-radius:10px}
 
+/* Ajuda */
+.helpbtn{margin-left:auto;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--red);background:var(--red);color:#fff;border-radius:99px;padding:6px 12px 6px 8px;font:700 .8rem var(--f-body);cursor:pointer;flex:none}
+.helpbtn:hover{background:var(--red-ink)}
+.helpbtn svg{width:18px;height:18px}
+.helpbtn + .top-centre{margin-left:0}
+#tour{position:fixed;inset:0;z-index:80}
+#tourCatch{position:fixed;inset:0}
+#tourSpot{position:fixed;border-radius:12px;box-shadow:0 0 0 3px var(--red),0 0 0 9999px rgba(24,18,19,.58);transition:all .3s ease;pointer-events:none}
+#tourPop{position:fixed;background:var(--bg);border-radius:14px;padding:14px 16px;box-shadow:0 20px 50px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:8px;transition:top .3s ease,left .3s ease}
+#tourPop h3{color:var(--red);font-size:1.05rem}
+#tourPop p{margin:0;font-size:.9rem;color:var(--ink-2)}
+.tp-h{display:flex;justify-content:space-between;align-items:center}
+.tp-n{font-size:.72rem;font-weight:700;color:var(--ink-3);letter-spacing:.05em}
+.tp-dots{display:flex;gap:4px;flex-wrap:wrap}
+.tp-dots i{width:6px;height:6px;border-radius:50%;background:var(--line)}
+.tp-dots i.on{background:var(--red);width:16px;border-radius:3px}
+#tourPop .row-actions{justify-content:flex-end}
+@media (max-width:560px){.helpbtn span{display:none}.helpbtn{padding:6px}}
+
 /* Factors */
 button.code{border:0;cursor:pointer;font-family:var(--f-body)}
 button.code:hover{outline:2px solid var(--red-line)}
@@ -1202,6 +1221,7 @@ footer.foot{border-top:1px solid var(--line);font-size:.75rem;color:var(--ink-3)
   .factors-intro,.fsteps,.factors-teaser{grid-template-columns:minmax(0,1fr)}
   .doc .d-two{grid-template-columns:1fr}
   .top-centre span{display:none}
+  .helpbtn{margin-left:auto}
   .top-centre{max-width:38vw}
   .brand small{display:none}
   .brand b{font-size:.85rem}
@@ -1240,6 +1260,7 @@ footer.foot{border-top:1px solid var(--line);font-size:.75rem;color:var(--ink-3)
     <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="17" r="3.2"/><circle cx="18" cy="17" r="3.2"/><path d="M6 17l4-7h5l3 7M10 10l-1.5-3H7M15 10l-1-3h2"/></svg></span>
     <span><b>Mobilitat escolar sostenible</b><small>Guia pràctica · eina de treball</small></span>
   </a>
+  <button id="helpBtn" class="helpbtn" data-act="help" aria-label="Ajuda d'aquesta pàgina"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M9.5 9.3a2.6 2.6 0 0 1 5 .9c0 1.8-2.5 2.2-2.5 3.8"/><circle cx="12" cy="17.3" r=".6" fill="currentColor"/></svg><span>Ajuda</span></button>
   <button class="top-centre" data-act="centreMenu" title="Edita les dades del centre"><span>Centre</span><b id="centreName"></b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/></svg></button>
   <button id="saveState" class="savepill ok" data-act="saveMenu"><i></i>Desat</button>
 </div>
@@ -1251,6 +1272,7 @@ footer.foot{border-top:1px solid var(--line);font-size:.75rem;color:var(--ink-3)
 </div>
 <footer class="foot">Basat en la guia «Mobilitat escolar sostenible: Guia pràctica» (setembre de 2026), d'Eduard Folch. Les dades es desen només en aquest navegador; exporteu-les per compartir-les. L'eina funciona sense IA: totes les recomanacions surten de regles explícites.</footer>
 <div id="modal" hidden role="dialog" aria-modal="true"><div class="modal-box" id="modalBody"></div></div>
+<div id="tour" hidden><div id="tourCatch"></div><div id="tourSpot"></div><div id="tourPop" role="dialog" aria-live="polite"></div></div>
 <div id="toast" role="status" aria-live="polite" hidden></div>
 <script>
 /* @preserve
@@ -3522,6 +3544,213 @@ Object.assign(ACT, {
     saveFile(`isocrones-${slug()}.json`, JSON.stringify(fc), "application/json"); },
   isoSvg: () => saveFile(`isocrones-${slug()}.svg`, isoSVG(isoState(), 700).replace("<svg ", '<svg xmlns="http://www.w3.org/2000/svg" '), "image/svg+xml")
 });
+
+/* help.js */
+/* ===== Guia d'ajuda interactiva ===== */
+const NAVSEL = "#stepbar:not([hidden]) .sb-track, #nav";
+const COMMON_END = [
+  {s:"#saveState", t:"Es desa sol", d:"Tot el que escrius es guarda automàticament en aquest navegador. Aquí veus quan s'ha desat per últim cop; clica-hi per fer-ne una còpia de seguretat."},
+  {s:".savebar", t:"Desa ara o fes-ne una còpia", d:"«Desa ara» força el desat. «Desa una còpia al dispositiu» descarrega el projecte en un fitxer per passar-lo a un altre ordinador o a la comissió."}
+];
+const TOURS = {
+  inici: [
+    {s:".hero", t:"Benvinguda", d:"Aquesta eina us acompanya per posar en marxa el pla de mobilitat escolar del centre, seguint la guia pas a pas."},
+    {s:"#helpBtn", t:"Ajuda sempre a mà", d:"Aquest botó obre la guia de la pàgina on sigueu. Cada pàgina i cada pestanya tenen la seva explicació."},
+    {s:".top-centre", t:"El vostre centre", d:"Nom, municipi i característiques del centre. Surten als documents i ajusten les recomanacions. Clica-hi per editar-los."},
+    {s:NAVSEL, t:"Els sis passos", d:"L'itinerari de treball de la guia. La barra de cada pas mostra quant n'heu fet. Podeu saltar d'un pas a l'altre quan vulgueu."},
+    {s:".steps", t:"Per on continuar", d:"Cada targeta explica què es fa en cada pas i el progrés. Comenceu per la comissió i la diagnosi: alimenten les recomanacions."},
+    {s:".factors-teaser", t:"Entendre els factors", d:"Abans de triar solucions, val la pena llegir què condiciona com anem a l'escola."},
+    {s:"#saveState", t:"Es desa sol", d:COMMON_END[0].d}
+  ],
+  "comissio:membres": [
+    {s:".tabs", t:"Quatre apartats", d:"Composició i rols, manifest de compromís, full de ruta en 6 passos, i reunions amb acta."},
+    {s:".callout", t:"Rols que falten", d:"La composició mínima és direcció, AFA, alumnat, tècnic/a municipal i coordinador/a. Clica un rol per afegir-lo."},
+    {s:".mlist", t:"Membres", d:"Nom, rol i contacte de cada persona. Els membres es poden assignar després a tasques de cada projecte."},
+    {s:"aside.card.soft", t:"Què fa cada rol", d:"Les funcions de cada rol segons la guia."},
+    {s:".tbl.resp", t:"Repartiment de responsabilitats", d:"Marqueu qui s'encarrega de diagnosi, comunicació, enllaç institucional i indicadors. El botó de sota aplica l'exemple de la guia."},
+    ...COMMON_END
+  ],
+  "comissio:manifest": [
+    {s:".checklist", t:"Compromisos", d:"Desmarqueu els que no vulgueu i afegiu-ne de propis just a sota."},
+    {s:".paper", t:"Vista prèvia", d:"El manifest tal com quedarà, amb el nom del centre i les signatures."},
+    {s:"[data-doc='manifest']", t:"Genera'l", d:"Obre el document per descarregar-lo, copiar-lo o imprimir-lo i portar-lo al Consell Escolar."},
+    ...COMMON_END
+  ],
+  "comissio:ruta": [
+    {s:".ruta", t:"Full de ruta", d:"Els sis passos de la guia per posar en marxa la comissió. Marqueu les tasques a mesura que les feu."},
+    {s:".ruta-step:nth-child(3) .grid2", t:"Problemes i oportunitats", d:"El resum d'una pàgina de la diagnosi. També el trobareu a Treball de camp."},
+    {s:".ruta-step:nth-child(4) .grid3", t:"Objectius anuals", d:"Entre 1 i 3 objectius concrets i mesurables per al curs."},
+    ...COMMON_END
+  ],
+  "comissio:reunions": [
+    {s:".callout", t:"Reunions del curs", d:"La guia recomana almenys tres reunions anuals."},
+    {s:".reunio", t:"Una reunió", d:"Data, assistents, ordre del dia, acords i tasques. Escriviu les tasques com «qui · què · quan»."},
+    {s:"[data-doc='acta']", t:"Acta", d:"Genera l'acta de la reunió a partir del que heu escrit."},
+    {s:"[data-act='planReunions'], [data-act='addReunio']", t:"Afegir reunions", d:"Podeu planificar les tres reunions tipus del curs d'un sol cop."},
+    ...COMMON_END
+  ],
+  "diagnosi:camp": [
+    {s:".defs", t:"Abans de començar", d:"Les definicions d'entorn immediat i dels radis de 5 minuts. Apunteu la data i qui fa el treball de camp."},
+    {s:".diag-side", t:"Blocs i puntuació", d:"Salteu a qualsevol bloc. A sota, la puntuació es calcula mentre responeu; el número vermell indica punts crítics."},
+    {s:".qblock .q .chips", t:"Respondre", d:"Toqueu l'opció que descriu millor la realitat. El número petit és la puntuació (1 a 4). Torneu-hi a tocar per desmarcar-la."},
+    {s:".subtag", t:"Subapartat", d:"Cada pregunta puntuable compta per a un subapartat del full de puntuacions de la guia."},
+    {s:".iso-link", t:"Plànol d'isòcrones", d:"Calcula fins on s'arriba a peu i en bici en 5, 10 i 15 minuts des de l'escola."},
+    {s:"button[data-val='result']", t:"Resultats", d:"Quan acabeu, aquí trobareu la puntuació i la interpretació."},
+    ...COMMON_END
+  ],
+  "diagnosi:result": [
+    {s:".radar", t:"Resum global", d:"Cada eix és un bloc. Com més lluny del centre, més favorable."},
+    {s:".synth-grid", t:"Resum per a la comissió", d:"A l'esquerra, propostes a partir de les puntuacions. Afegiu les que compartiu a la dreta i editeu-les."},
+    {s:"[data-doc='informe']", t:"Informe de diagnosi", d:"Document amb les puntuacions, la interpretació, el resum, les isòcrones i l'enquesta."},
+    {s:"[data-act='snapDiag']", t:"Desar per comparar", d:"Guarda la diagnosi d'avui. Quan la repetiu a final de curs, a Seguiment veureu l'evolució."},
+    {s:".interp", t:"Interpretació per bloc", d:"Puntuació, escala, descripció i línia d'acció de la guia. Les respostes amb 1 punt surten com a punts crítics i el bloc no pot ser «Favorable»."},
+    {s:".heatcard", t:"Calor i confort", d:"Indicador transversal que reuneix totes les preguntes d'ombra i calor perquè no quedin diluïdes."},
+    ...COMMON_END
+  ],
+  "enquesta:prep": [
+    {s:".howto", t:"Com funciona", d:"Creeu l'enquesta a Google Forms, envieu-la a les famílies i importeu-ne les respostes."},
+    {s:"#f_survey_intro", t:"Text de presentació", d:"Podeu adaptar-lo. Surt a l'enquesta en paper i al formulari."},
+    {s:"[data-doc='enquesta']", t:"Versió en paper", d:"Per a les famílies que prefereixin respondre-la a mà."},
+    {s:".forms", t:"Google Forms", d:"Copieu l'script, enganxeu-lo a script.google.com i executeu-lo: es crea el formulari amb totes les preguntes."},
+    {s:"aside.card.soft", t:"Preguntes i codis", d:"Totes les preguntes de l'enquesta de la guia, amb les opcions."},
+    ...COMMON_END
+  ],
+  "enquesta:result": [
+    {s:".import", t:"Importar respostes", d:"Baixeu el CSV (o el ZIP) de Google Forms i carregueu-lo aquí. Cada importació substitueix l'anterior."},
+    {s:".kpis", t:"Xifres clau", d:"Respostes, % a peu, % en cotxe i quantes famílies que viuen a menys de 10 minuts hi van en cotxe."},
+    {s:".card.soft", t:"Lectura ràpida", d:"Conclusions automàtiques quan alguna dada destaca."},
+    {s:".stack", t:"Gràfics", d:"Com arriben, distàncies, acompanyament, barreres, propostes i percepcions."},
+    {s:"a[href='#solucions']", t:"Següent pas", d:"Els resultats es creuen amb la diagnosi per recomanar solucions."},
+    ...COMMON_END
+  ],
+  solucions: [
+    {s:".card:has(#s_ctx_voluntaris)", t:"Context del centre", d:"Voluntariat, pressupost, sortides en autobús i mida del municipi. Ajusten les recomanacions."},
+    {s:".facs", t:"Factors", d:"Marqueu els factors que pesen al vostre centre. Els «suggerits» surten de la diagnosi i l'enquesta."},
+    {s:".sol-filter", t:"Filtrar", d:"Mostra només les solucions que aborden un factor concret."},
+    {s:".sol .sol-h", t:"Encaix", d:"Alt, mitjà o baix, calculat amb regles explícites. No hi ha cap IA."},
+    {s:".sol .why", t:"El perquè", d:"Les dades concretes que justifiquen la recomanació. Els avisos grocs indiquen condicions prèvies."},
+    {s:".sol .codes-row", t:"Codis de factors", d:"Clica un codi per veure què vol dir."},
+    {s:".sol .row-actions", t:"Obrir i afegir", d:"Obriu la fitxa per llegir-la o afegiu-la al pla del centre per començar a treballar-la."},
+    {s:".ambits", t:"Els sis àmbits", d:"Quan és prioritari cada àmbit i per on començar."},
+    ...COMMON_END
+  ],
+  factors: [
+    {s:".fdiag", t:"Dos tipus de factors", d:"Els estructurals (A) fan de marc del que és possible. Els personals (B) decideixen què tria cada família dins d'aquest marc."},
+    {s:".fsteps", t:"Com fer-los servir", d:"Llegiu-los, contrasteu-los amb les vostres dades i marqueu els rellevants."},
+    {s:".fcard", t:"Cada factor", d:"Què vol dir, exemples, on ho veieu a la diagnosi o l'enquesta i quines solucions hi actuen."},
+    {s:".fcard .fcard-f", t:"Marcar-lo", d:"Els factors marcats es tenen en compte a les recomanacions."}
+  ],
+  "fitxa:resum": [
+    {s:".fitxa-h", t:"La fitxa", d:"Títol, resum i encaix amb el vostre centre. Afegiu-la al pla per fer-ne el seguiment."},
+    {s:".tabs", t:"Pestanyes", d:"Resum, pas a pas, eina pròpia, pressupost, indicadors i el text complet de la guia."},
+    {s:".facl", t:"Factors que aborda", d:"Clica un codi per entendre el factor."},
+    {s:".potes, .tbl", t:"Qui fa què", d:"Els actors i les seves funcions. Escriviu la persona de referència de cada un."},
+    {s:".minimes", t:"Actuacions mínimes", d:"El paquet bàsic recomanat per la guia."},
+    {s:"button[data-val='guia']", t:"Text de la guia", d:"La fitxa original sencera, pàgina a pàgina."},
+    ...COMMON_END
+  ],
+  "fitxa:fases": [
+    {s:".fase", t:"Fases", d:"Les fases de la guia amb les seves tasques."},
+    {s:".tasks li", t:"Tasca", d:"Marqueu-la quan estigui feta i assigneu-hi responsable i data. El progrés surt a Projectes."},
+    ...COMMON_END
+  ],
+  "fitxa:eina": [
+    {s:"#main .card", t:"Eina de la fitxa", d:"Una calculadora o un formulari propi d'aquesta solució: rutes, flota i costos, delimitació, checklist, COM-B…"},
+    {s:".results, .result, .decision", t:"Resultats", d:"Es recalculen cada cop que canvieu una dada."},
+    ...COMMON_END
+  ],
+  "fitxa:pressupost": [
+    {s:".budget", t:"Partides", d:"Rangs orientatius de la guia. Escriviu el vostre import previst o deixeu-lo buit per agafar el punt mig. Desmarqueu les partides que no apliquin."},
+    {s:".chips", t:"Escenari", d:"Algunes fitxes tenen escenaris (per exemple, «low cost» o tàctic robust)."},
+    {s:"[data-act='budgetExtra']", t:"Partides pròpies", d:"Afegiu-ne si cal."},
+    ...COMMON_END
+  ],
+  "fitxa:indicadors": [
+    {s:".tbl.ind", t:"Indicadors", d:"Marqueu els que seguireu i apunteu el valor inicial, l'objectiu i l'actual. Apareixeran a Seguiment."},
+    ...COMMON_END
+  ],
+  "fitxa:guia": [
+    {s:".gpage", t:"Text original", d:"Les pàgines de la guia tal com són. Clica'n una per veure-la gran."}
+  ],
+  projectes: [
+    {s:".proj", t:"Cada projecte", d:"Avenç, properes tasques amb responsable i pressupost previst."},
+    {s:".proj .row-actions", t:"Accions", d:"Continueu a la fitxa, genereu el pla d'acció o traieu-la del pla."},
+    {s:".empty a", t:"Encara no n'hi ha", d:"Afegiu solucions des de «Triar solucions»."},
+    ...COMMON_END
+  ],
+  seguiment: [
+    {s:".grid3", t:"Objectius anuals", d:"Els mateixos objectius del full de ruta de la comissió."},
+    {s:".card:nth-of-type(2)", t:"Indicadors", d:"Tots els indicadors que heu marcat a les fitxes, amb valor inicial, objectiu i actual."},
+    {s:"[data-act='snapDiag']", t:"Comparar diagnosis", d:"Deseu la diagnosi ara i repetiu-la a final de curs per veure l'evolució."},
+    {s:".doclist", t:"Documents", d:"Manifest, informe, enquesta, memòria, actes i plans d'acció per descarregar i imprimir."},
+    ...COMMON_END
+  ],
+  dades: [
+    {s:"[data-act='exportJSON']", t:"Exportar", d:"Descarrega tot el projecte en un fitxer. És la vostra còpia de seguretat."},
+    {s:".filebtn", t:"Importar", d:"Carrega un projecte exportat, per exemple des d'un altre ordinador."},
+    {s:"[data-act='askReset']", t:"Centre nou", d:"Comença en blanc. Exporteu abans si voleu conservar les dades."}
+  ],
+  isocrones: [
+    {s:".iso-ctrl", t:"Situar l'escola", d:"Escriviu l'adreça i cerqueu-la, o cliqueu directament al mapa."},
+    {s:".iso-ctrl .chips", t:"Modes i velocitats", d:"A peu, en bicicleta o tots dos. Ajusteu la velocitat a l'edat dels infants."},
+    {s:"[data-act='isoRun']", t:"Calcular", d:"Calcula les àrees de 5, 10 i 15 minuts seguint els carrers. Si no hi ha connexió amb els mapes, feu servir l'esquema aproximat."},
+    {s:".iso-mapcard", t:"Mapa", d:"A peu en vermell, en bici en gris discontinu. Passeu per sobre per veure els minuts."},
+    {s:"[data-act='isoSave']", t:"Desar", d:"Guarda el plànol al treball de camp i a l'informe."}
+  ]
+};
+function tourKey(){
+  const v = ROUTE.view;
+  if(v==="comissio") return "comissio:"+curTab("com","membres");
+  if(v==="diagnosi") return "diagnosi:"+curTab("diag","camp");
+  if(v==="enquesta") return "enquesta:"+curTab("enq", S.survey.resp.length ? "result" : "prep");
+  if(v==="fitxa"){ const t = curTab("f-"+ROUTE.arg, "resum"); return "fitxa:"+t; }
+  return v;
+}
+function visibleEl(sel){
+  for(const s of sel.split(",")){ const all = $$(s.trim()); for(const el of all){ const r = el.getBoundingClientRect(); if(r.width>0 && r.height>0 && !el.closest("[hidden]")) return el; } }
+  return null;
+}
+let TOUR = null;
+function startTour(){
+  const steps = (TOURS[tourKey()] || TOURS[ROUTE.view] || []).filter(st=>visibleEl(st.s));
+  if(!steps.length){ toast("No hi ha ajuda per a aquesta pàgina"); return; }
+  closeModal();
+  TOUR = {steps, i:0}; $("#tour").hidden = false; document.body.classList.add("touring"); showStep();
+}
+function endTour(){ TOUR = null; $("#tour").hidden = true; document.body.classList.remove("touring"); }
+function showStep(){
+  if(!TOUR) return; const st = TOUR.steps[TOUR.i]; const el = visibleEl(st.s); if(!el){ return nextStep(); }
+  el.scrollIntoView({block:"center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
+  const pop = $("#tourPop");
+  pop.innerHTML = `<div class="tp-h"><span class="tp-n">${TOUR.i+1}/${TOUR.steps.length}</span><button class="icon-btn" data-tour="end" aria-label="Tanca l'ajuda">✕</button></div>
+    <h3>${st.t}</h3><p>${st.d}</p>
+    <div class="tp-dots">${TOUR.steps.map((_,i)=>`<i class="${i===TOUR.i?"on":""}"></i>`).join("")}</div>
+    <div class="row-actions"><button class="btn ghost sm" data-tour="prev" ${TOUR.i===0?"disabled":""}>Anterior</button><button class="btn sm" data-tour="next">${TOUR.i===TOUR.steps.length-1?"Fet":"Següent"}</button></div>`;
+  clearTimeout(TOUR.t); placeTour(el); TOUR.t = setTimeout(()=>placeTour(el), 380);
+  pop.querySelector("[data-tour='next']").focus({preventScroll:true});
+}
+function placeTour(el){
+  if(!TOUR) return; const r = el.getBoundingClientRect(); const pad = 8;
+  const spot = $("#tourSpot"); const vw = innerWidth, vh = innerHeight;
+  const x = Math.max(4, r.left-pad), y = Math.max(4, r.top-pad), w = Math.min(vw-8, r.width+pad*2), h = Math.min(vh-8, r.height+pad*2);
+  Object.assign(spot.style, {left:x+"px", top:y+"px", width:w+"px", height:h+"px"});
+  const pop = $("#tourPop"); const pw = Math.min(340, vw-24); pop.style.width = pw+"px";
+  const ph = pop.offsetHeight;
+  let top = y+h+12; if(top+ph > vh-12) top = y-ph-12; if(top < 12) top = Math.max(12, vh-ph-12);
+  let left = Math.min(Math.max(12, x + w/2 - pw/2), vw-pw-12);
+  Object.assign(pop.style, {top:top+"px", left:left+"px"});
+}
+function nextStep(){ if(!TOUR) return; if(TOUR.i>=TOUR.steps.length-1) return endTour(); TOUR.i++; showStep(); }
+function prevStep(){ if(!TOUR || TOUR.i===0) return; TOUR.i--; showStep(); }
+document.addEventListener("click", e=>{
+  const b = e.target.closest("[data-tour]"); if(b){ e.preventDefault(); e.stopPropagation(); ({next:nextStep, prev:prevStep, end:endTour})[b.dataset.tour](); return; }
+  if(TOUR && e.target.id==="tourCatch"){ endTour(); }
+}, true);
+document.addEventListener("keydown", e=>{ if(!TOUR) return; if(e.key==="Escape") endTour(); if(e.key==="ArrowRight") nextStep(); if(e.key==="ArrowLeft") prevStep(); });
+addEventListener("resize", ()=>{ if(TOUR){ const el = visibleEl(TOUR.steps[TOUR.i].s); if(el) placeTour(el); } });
+addEventListener("scroll", ()=>{ if(TOUR){ const el = visibleEl(TOUR.steps[TOUR.i].s); if(el) placeTour(el); } }, {passive:true});
+addEventListener("hashchange", ()=>{ if(TOUR) endTour(); });
+ACT.help = () => startTour();
 
 /* init.js */
 load(); ROUTE = parseHash(); render(); writeNow();

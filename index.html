@@ -1070,6 +1070,8 @@ svg.leaflet-image-layer.leaflet-interactive path {
 .tp-dots i.on{background:var(--red);width:16px;border-radius:3px}
 #tourPop .row-actions{justify-content:flex-end}
 @media (max-width:560px){.helpbtn span{display:none}.helpbtn{padding:6px}}
+#tourPop.sheet{left:10px!important;right:10px;bottom:max(10px,env(safe-area-inset-bottom,0px));top:auto!important;width:auto!important;transition:none}
+#tourSpot{transition:none}
 
 /* Factors */
 button.code{border:0;cursor:pointer;font-family:var(--f-body)}
@@ -3717,24 +3719,31 @@ function startTour(){
   closeModal();
   TOUR = {steps, i:0}; $("#tour").hidden = false; document.body.classList.add("touring"); showStep();
 }
-function endTour(){ TOUR = null; $("#tour").hidden = true; document.body.classList.remove("touring"); }
+function endTour(){ if(TOUR && TOUR.raf) cancelAnimationFrame(TOUR.raf); TOUR = null; $("#tour").hidden = true; document.body.classList.remove("touring"); }
 function showStep(){
   if(!TOUR) return; const st = TOUR.steps[TOUR.i]; const el = visibleEl(st.s); if(!el){ return nextStep(); }
-  el.scrollIntoView({block:"center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
+  const mobile = innerWidth <= 700;
+  const r0 = el.getBoundingClientRect(); const headH = (($("#stepbar")&&$("#stepbar").getBoundingClientRect().bottom)||60);
+  const target = mobile ? scrollY + r0.top - headH - 16 : scrollY + r0.top - (innerHeight - Math.min(r0.height, innerHeight*.6))/2;
+  window.scrollTo({top: Math.max(0,target), behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
+  TOUR.el = el;
   const pop = $("#tourPop");
   pop.innerHTML = `<div class="tp-h"><span class="tp-n">${TOUR.i+1}/${TOUR.steps.length}</span><button class="icon-btn" data-tour="end" aria-label="Tanca l'ajuda">✕</button></div>
     <h3>${st.t}</h3><p>${st.d}</p>
     <div class="tp-dots">${TOUR.steps.map((_,i)=>`<i class="${i===TOUR.i?"on":""}"></i>`).join("")}</div>
     <div class="row-actions"><button class="btn ghost sm" data-tour="prev" ${TOUR.i===0?"disabled":""}>Anterior</button><button class="btn sm" data-tour="next">${TOUR.i===TOUR.steps.length-1?"Fet":"Següent"}</button></div>`;
-  clearTimeout(TOUR.t); placeTour(el); TOUR.t = setTimeout(()=>placeTour(el), 380);
+  placeTour(el); if(!TOUR.raf) trackTour();
   pop.querySelector("[data-tour='next']").focus({preventScroll:true});
 }
+function trackTour(){ if(!TOUR){ return; } if(TOUR.el) placeTour(TOUR.el); TOUR.raf = requestAnimationFrame(trackTour); }
 function placeTour(el){
   if(!TOUR) return; const r = el.getBoundingClientRect(); const pad = 8;
   const spot = $("#tourSpot"); const vw = innerWidth, vh = innerHeight;
   const x = Math.max(4, r.left-pad), y = Math.max(4, r.top-pad), w = Math.min(vw-8, r.width+pad*2), h = Math.min(vh-8, r.height+pad*2);
   Object.assign(spot.style, {left:x+"px", top:y+"px", width:w+"px", height:h+"px"});
-  const pop = $("#tourPop"); const pw = Math.min(340, vw-24); pop.style.width = pw+"px";
+  const pop = $("#tourPop");
+  if(vw <= 700){ pop.classList.add("sheet"); pop.style.width = ""; pop.style.top = ""; pop.style.left = ""; return; }
+  pop.classList.remove("sheet"); const pw = Math.min(340, vw-24); pop.style.width = pw+"px";
   const ph = pop.offsetHeight;
   let top = y+h+12; if(top+ph > vh-12) top = y-ph-12; if(top < 12) top = Math.max(12, vh-ph-12);
   let left = Math.min(Math.max(12, x + w/2 - pw/2), vw-pw-12);

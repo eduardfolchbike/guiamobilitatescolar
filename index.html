@@ -1511,7 +1511,7 @@ const SURVEY = [
   {id:"s231",t:"Aquests altres llocs són…",type:"single",opts:{a:"Al mateix municipi que l'escola",b:"En un altre municipi"}}
  ]},
  {sec:"3. Motius i barreres principals",note:"Es poden marcar totes les opcions que s'hi adaptin.",qs:[
-  {id:"s31",t:"Distància i camí a peu o en bici",type:"multi",opts:{a:"El recorregut és massa llarg per fer-lo caminant",b:"Moltes pujades",c:"Trams sense voreres o molt estretes",d:"Escalons, desnivells o barreres"}},
+  {id:"s31",t:"Distància i camí a peu o en bici",type:"multi",opts:{a:"El recorregut és massa llarg per fer-lo caminant",b:"Moltes pujades",c:"Trams sense voreres o molt estretes",d:"Graons, desnivells o barreres"}},
   {id:"s32",t:"Trànsit i seguretat viària o personal",type:"multi",opts:{a:"Molt trànsit de cotxes o camions",b:"Els cotxes van massa ràpid",c:"Cruïlles o rotondes difícils de creuar",d:"Cotxes aparcats malament davant l'escola",e:"Por d'accident si hi va sol/a",f:"Persones o situacions insegures al carrer"}},
   {id:"s33",t:"Transport públic",type:"multi",opts:{a:"No hi ha transport públic útil",b:"Els horaris no encaixen amb l'escola"}},
   {id:"s34",t:"Organització familiar i hàbits",type:"multi",opts:{a:"Els horaris de feina m'obliguen a anar ràpid",b:"Aprofito el trajecte per altres gestions",c:"El cotxe és més còmode o ràpid",d:"El clima ho fa difícil",e:"No tenim bicicleta, patinet o equipament",f:"Sempre ho hem fet així"}}
@@ -3312,6 +3312,7 @@ function csvPrepare(text){
 }
 function csvApply(prep){
   const {rows, idx} = prep; const qs = SQ(); const out = [];
+  const oldWord = x => String(x==null?"":x).replace(/escalons/gi, m=>m[0]==="E"?"Graons":"graons"); /* formularis creats amb el text antic */
   const one = (q, v) => { v = String(v||"").trim(); if(!v) return undefined;
     if(!q.opts){ if(q.type==="likert"||q.type==="num"){ const n = parseFloat(v.replace(",",".")); return isNaN(n)?undefined:n; } return v; }
     const lv = v.toLowerCase(); if(q.opts[lv]) return lv; const nv = normT(v);
@@ -3322,7 +3323,7 @@ function csvApply(prep){
     if(/[;|]/.test(v)) return v.split(/[;|]/).map(x=>one(q,x)).filter(Boolean);
     const nv = " "+normT(v)+" "; const hit = Object.entries(q.opts).filter(([k,t])=>nv.includes(" "+normT(t)+" ")).map(([k])=>k);
     return hit.length ? hit : v.split(/\s*,\s*/).map(x=>one(q,x)).filter(Boolean); };
-  rows.slice(1).forEach(r=>{ const o={}; qs.forEach((q,j)=>{ if(idx[j]==null||idx[j]<0) return; const raw = r[idx[j]];
+  rows.slice(1).forEach(r=>{ const o={}; qs.forEach((q,j)=>{ if(idx[j]==null||idx[j]<0) return; const raw = oldWord(r[idx[j]]);
       if(q.type==="multi"){ const arr = [...new Set(many(q, raw))]; if(arr.length) o[q.id]=arr; }
       else { const m = one(q, raw); if(m!==undefined && m!=="") o[q.id]=m; } });
     if(Object.keys(o).length) out.push(o); });

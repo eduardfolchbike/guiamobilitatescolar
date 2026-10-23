@@ -3543,6 +3543,7 @@ const ISO = {
     {name:"OpenStreetMap França", url:"https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png", opt:{maxZoom:20, subdomains:"abc", attribution:"© OpenStreetMap · OSM França"}},
     {name:"CARTO", url:"https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", opt:{maxZoom:19, subdomains:"abcd", attribution:"© OpenStreetMap · © CARTO"}}
   ],
+  defaultView: {c:[41.3874, 2.1686], z:12}, /* Barcelona */
   times: [5, 10, 15],
   walkColors: ["#DA1B2E", "#E85A68", "#F3A3AB"],
   bikeColors: ["#3B3535", "#6F6566", "#A39A9B"]
@@ -3635,7 +3636,14 @@ function isoMapInit(){
   const I = isoState();
   if(!window.L){ el.hidden = true; $("#isoNoMap").hidden = false; return; }
   const v = UI.isoView;
-  MAP = L.map(el, {scrollWheelZoom:false, zoomControl:true}).setView(v ? v[0] : (I.lat ? [I.lat, I.lon] : [41.75, 2.0]), v ? v[1] : (I.lat ? 14 : 8));
+  const mun = (S.centre.municipi||"").trim();
+  const munOk = mun && I.mun && I.mun.name===mun;
+  const start = v ? v[0] : I.lat ? [I.lat, I.lon] : munOk ? [I.mun.lat, I.mun.lon] : ISO.defaultView.c;
+  const zoom = v ? v[1] : I.lat ? 14 : munOk ? 13 : ISO.defaultView.z;
+  MAP = L.map(el, {scrollWheelZoom:false, zoomControl:true}).setView(start, zoom);
+  if(!v && !I.lat && mun && !munOk){ const m0 = MAP; m0.on("dragstart zoomstart", ()=>{ m0._userMoved = true; });
+    isoGeocode(mun+", Catalunya").then(h=>{ if(!h.length) return; I.mun = {name:mun, lat:+h[0].lat, lon:+h[0].lon}; save();
+      if(MAP===m0 && !I.lat && !m0._userMoved) MAP.setView([I.mun.lat, I.mun.lon], 13); }).catch(()=>{}); }
   let ti = 0, errs = 0, layer = null;
   const useTiles = () => {
     if(layer) MAP.removeLayer(layer);

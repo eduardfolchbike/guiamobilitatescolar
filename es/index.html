@@ -57,6 +57,9 @@ code,kbd{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.82em
 .top-centre b{color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .top-centre svg{width:14px;height:14px;flex:none;color:var(--red)}
 .savepill{flex:none;display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--bg);border-radius:99px;padding:6px 12px;font:600 .78rem var(--f-body);color:var(--ink-2);cursor:pointer;white-space:nowrap}
+.grantbar{display:flex;flex-wrap:wrap;justify-content:center;gap:2px 6px;padding:7px 16px;background:var(--red);color:#fff;text-decoration:none;font:500 .82rem/1.35 var(--f-body);text-align:center}
+.grantbar b{font-weight:800}.grantbar u{text-underline-offset:2px;font-weight:700}.grantbar:hover{background:var(--red-ink)}
+@media print{.grantbar{display:none}}
 .langsw{flex:none;display:inline-flex;align-items:center;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:6px 10px;font:700 .78rem var(--f-body);color:var(--ink-2);text-decoration:none;letter-spacing:.04em}
 .langsw:hover{border-color:var(--red-line);color:var(--red-ink)}
 .savepill:hover{border-color:var(--red-line)}
@@ -1296,6 +1299,7 @@ footer.foot{display:flex;flex-direction:column;align-items:flex-start;gap:14px;b
   <button id="saveState" class="savepill ok" data-act="saveMenu"><i></i>Guardado</button>
   <a class="langsw" href="../" hreflang="ca" lang="ca" title="Versió en català">CA</a>
 </div>
+<a class="grantbar" id="grantBar" href="https://www.diba.cat/ca/web/mediambient/mobilitat-escolar" target="_blank" rel="noopener"><b>Ayudas de hasta 9.000 €</b><span> de la Diputación de Barcelona para impulsar acciones de la guía.</span> <u>Más información ↗</u></a>
 <div class="example" id="exampleBanner" hidden><b>Estáis viendo un centro de ejemplo.</b> <span>Los datos son orientativos para explorar la herramienta.</span> <button class="btn sm" data-act="newCentre">Empieza con tu centro</button></div>
 <nav class="stepbar" id="stepbar" aria-label="Pasos"></nav>
 <div class="shell">

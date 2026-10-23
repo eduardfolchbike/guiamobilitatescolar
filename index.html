@@ -57,6 +57,9 @@ code,kbd{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.82em
 .top-centre b{color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .top-centre svg{width:14px;height:14px;flex:none;color:var(--red)}
 .savepill{flex:none;display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--bg);border-radius:99px;padding:6px 12px;font:600 .78rem var(--f-body);color:var(--ink-2);cursor:pointer;white-space:nowrap}
+.grantbar{display:flex;flex-wrap:wrap;justify-content:center;gap:2px 6px;padding:7px 16px;background:var(--red);color:#fff;text-decoration:none;font:500 .82rem/1.35 var(--f-body);text-align:center}
+.grantbar b{font-weight:800}.grantbar u{text-underline-offset:2px;font-weight:700}.grantbar:hover{background:var(--red-ink)}
+@media print{.grantbar{display:none}}
 .langsw{flex:none;display:inline-flex;align-items:center;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:6px 10px;font:700 .78rem var(--f-body);color:var(--ink-2);text-decoration:none;letter-spacing:.04em}
 .langsw:hover{border-color:var(--red-line);color:var(--red-ink)}
 .savepill:hover{border-color:var(--red-line)}
@@ -1296,6 +1299,7 @@ footer.foot{display:flex;flex-direction:column;align-items:flex-start;gap:14px;b
   <button id="saveState" class="savepill ok" data-act="saveMenu"><i></i>Desat</button>
   <a class="langsw" href="es/" hreflang="es" lang="es" title="Versión en castellano">ES</a>
 </div>
+<a class="grantbar" id="grantBar" href="https://www.diba.cat/ca/web/mediambient/mobilitat-escolar" target="_blank" rel="noopener"><b>Ajuts de fins a 9.000 €</b><span> de la Diputació de Barcelona per impulsar accions de la guia.</span> <u>Més informació ↗</u></a>
 <div class="example" id="exampleBanner" hidden><b>Esteu veient un centre d'exemple.</b> <span>Les dades són orientatives per explorar l'eina.</span> <button class="btn sm" data-act="newCentre">Comença amb el teu centre</button></div>
 <nav class="stepbar" id="stepbar" aria-label="Passos"></nav>
 <div class="shell">

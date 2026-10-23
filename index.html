@@ -1225,6 +1225,24 @@ button.code:hover{outline:2px solid var(--red-line)}
 .foot-t a{color:var(--ink-2)}
 footer.foot{display:flex;flex-direction:column;align-items:flex-start;gap:14px;border-top:1px solid var(--line);font-size:.75rem;color:var(--ink-3);padding-block:18px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 
+.print-head{display:none}
+.res-print{margin:0 0 14px}
+.iso-res-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;margin:10px 0}
+.iso-res figure{margin:0}.iso-res-svg svg{width:100%;height:auto;max-width:360px;display:block}
+.iso-res figcaption{font-size:.84rem;margin-top:6px;color:var(--ink-2)}
+@media print{
+  .print-head{display:flex;flex-direction:column;gap:2px;border-bottom:2px solid var(--red);padding-bottom:8px;margin-bottom:14px}
+  .print-head b{font-size:1.05rem;color:var(--red-ink)}
+  .stepbar,.grantbar,.langsw,.helpbtn,.noprint,.tabs,.vhead-img,.savebar,.diag-side,.row-actions,.top-centre,.savepill,.synth-grid>div:first-child{display:none!important}
+  .shell{display:block!important}
+  main,#main{width:100%!important;max-width:none!important;padding:0!important;margin:0!important}
+  .card,.interp,.heatcard,.iso-res figure{break-inside:avoid;box-shadow:none!important}
+  .interp-grid{grid-template-columns:1fr 1fr!important}
+  textarea{border:1px solid #ccc!important;resize:none}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  @page{margin:14mm}
+}
+
 @media print{
   .top,#nav,.example,footer.foot,.doc-bar{display:none!important}
   body.modal-open .shell{display:none} #modal{position:static;background:none;padding:0} .modal-box{box-shadow:none;padding:0;width:100%!important} .doc{border:0}
@@ -2345,9 +2363,19 @@ function diagResultats(sc){
     </article>`;
   }).join("");
   const hist = S.diagHist||[];
-  return `<div class="res-top">
+  const Iso = S.diag.iso; const isoOn = Iso && Iso.lat && (Iso.walk||Iso.bike);
+  const reach = (arr) => arr.map(c=>`${c.t} min ≈ ${Math.round(Math.sqrt(geomArea(c.geo,Iso.lat)/Math.PI)/10)*10} m`).join(" · ");
+  const isoCard = `<section class="card iso-res"><h2>Plànols d'isòcrones</h2>`
+    + (isoOn ? `<div class="iso-res-grid">${["walk","bike"].filter(k=>Iso[k]).map(k=>`<figure><div class="iso-res-svg">${isoSVG({...Iso,[k==="walk"?"bike":"walk"]:null}, 360)}</div><figcaption><b>${k==="walk"?"A peu":"En bicicleta"} (${(k==="walk"?Iso.walkSpeed||4:Iso.bikeSpeed||12)} km/h)</b><br>${reach(Iso[k])}</figcaption></figure>`).join("")}</div>
+      <p class="muted small">${Iso.approx?"Esquema aproximat en línia recta.":"Calculat sobre la xarxa de carrers d'OpenStreetMap (Valhalla)."}${Iso.date?" Data: "+fmtDate(Iso.date)+".":""} La guia defineix l'entorn a 5 minuts a peu com uns 300–400 m i l'entorn a 5 minuts en bici com 1–1,5 km.</p>`
+      : `<p class="muted">Encara no heu calculat cap plànol. <a href="#isocrones">Crea'l amb l'eina d'isòcrones</a> i apareixerà aquí.</p>`)
+    + `</section>`;
+  return `<div class="print-head"><b>Mobilitat escolar sostenible · ${esc(S.centre.nom||"Centre")}${S.centre.municipi?" · "+esc(S.centre.municipi):""}</b><span>Treball de camp: puntuacions i interpretació${S.diag.date?" · "+fmtDate(S.diag.date):""}</span></div>
+  <div class="row-actions noprint res-print"><button class="btn" data-act="printRes">Imprimeix els resultats</button></div>
+  <div class="res-top">
     <section class="card"><h2>Resum global del centre</h2>${radarSVG(sc)}
       <p class="muted small">Cada subapartat és la mitjana arrodonida de les preguntes que el formen (1–4). El total de bloc és la suma dels subapartats. Una resposta amb 1 punt és un <b>punt crític</b>: es destaca al bloc i impedeix que surti «Favorable».</p></section>
+    ${isoCard}
     <section class="card soft">
       <p class="kicker">Pas 3 del full de ruta</p>
       <h2>Resum per a la comissió</h2>
@@ -3419,6 +3447,7 @@ const ACT = {
     [[`${y}-10-15`,"Constitució de la comissió\nAprovació del manifest\nRepartiment de rols\nCalendari de diagnosi"],[`${y+1}-02-10`,"Resultats del treball de camp i de l'enquesta\nProblemes i oportunitats\nObjectius anuals i accions prioritàries"],[`${y+1}-06-10`,"Balanç del curs i indicadors\nAjust d'objectius per al curs vinent\nMemòria de l'experiència"]].forEach(([d,o])=>S.com.reunions.push({id:uid(),data:d,lloc:"",assistents:"",ordre:o,acords:"",tasques:""})); touch(); },
   fillB0: () => { const st = surveyStats(); const m = st.modal; const pick=(v,cuts)=>cuts.findIndex(c=>v<c);
     if(m.peu!=null){ S.diag.ans.m_peu = pick(m.peu,[25,50,75,101]); S.diag.ans.m_bici = pick(m.bici,[5,10,25,101]); S.diag.ans.m_tp = pick((m.tp||0)+(m.bus||0),[10,25,50,101]); S.diag.ans.m_cot = pick(m.cotxe,[25,50,75,101]); touch(); toast("Bloc 0 omplert amb l'enquesta"); } },
+  printRes: () => window.print(),
   snapDiag: () => { const sc = scores(); S.diagHist.push({date: S.diag.date||today(), totals: sc.blocs.map(b=>b.total)}); touch(); toast("Diagnosi desada per comparar-la més endavant"); },
   spick: el => { const d = S.survey.draft = S.survey.draft||{}; const k = el.dataset.num ? +el.dataset.k : el.dataset.k; d[el.dataset.q] = d[el.dataset.q]===k ? undefined : k; if(d[el.dataset.q]===undefined) delete d[el.dataset.q]; touch(); },
   stoggle: el => { const d = S.survey.draft = S.survey.draft||{}; let a = d[el.dataset.q]||[]; a = a.includes(el.dataset.k)?a.filter(x=>x!==el.dataset.k):[...a,el.dataset.k]; if(a.length) d[el.dataset.q]=a; else delete d[el.dataset.q]; touch(); },

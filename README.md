@@ -14,3 +14,9 @@ Ajuda a posar en marxa, pas a pas, el pla de mobilitat d'un centre educatiu:
 Funciona sense IA i sense servidor: és un sol fitxer `index.html` i les dades es desen al navegador (amb exportació i importació en JSON).
 
 Serveis externs que fa servir l'eina d'isòcrones: mapa d'OpenStreetMap / CARTO, isòcrones de Valhalla (FOSSGIS) i cerca d'adreces de Nominatim.
+
+
+## Versions
+
+- Català: `index.html`
+- Castellano: `es/index.html` (selector CA/ES a la capçalera de l'eina)

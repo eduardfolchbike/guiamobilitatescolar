@@ -57,6 +57,8 @@ code,kbd{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.82em
 .top-centre b{color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .top-centre svg{width:14px;height:14px;flex:none;color:var(--red)}
 .savepill{flex:none;display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--bg);border-radius:99px;padding:6px 12px;font:600 .78rem var(--f-body);color:var(--ink-2);cursor:pointer;white-space:nowrap}
+.langsw{flex:none;display:inline-flex;align-items:center;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:6px 10px;font:700 .78rem var(--f-body);color:var(--ink-2);text-decoration:none;letter-spacing:.04em}
+.langsw:hover{border-color:var(--red-line);color:var(--red-ink)}
 .savepill:hover{border-color:var(--red-line)}
 .savepill i{width:8px;height:8px;border-radius:50%;background:var(--ok)}
 .savepill.saving i{background:var(--mid);animation:pulse 1s infinite}
@@ -1070,7 +1072,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 .tp-dots i{width:6px;height:6px;border-radius:50%;background:var(--line)}
 .tp-dots i.on{background:var(--red);width:16px;border-radius:3px}
 #tourPop .row-actions{justify-content:flex-end}
-@media (max-width:560px){.helpbtn span{display:none}.helpbtn{padding:6px}}
+@media (max-width:560px){.helpbtn span{display:none}.helpbtn{padding:6px} .brand{flex:none} .brand > span:not(.brand-mark){display:none} .top-centre > span{display:none} .top-centre{max-width:46vw} .langsw{padding:6px 8px} .top{gap:8px}}
 #tourPop.sheet{left:10px!important;right:10px;bottom:max(10px,env(safe-area-inset-bottom,0px));top:auto!important;width:auto!important;transition:none}
 #tourSpot{transition:none}
 
@@ -1292,6 +1294,7 @@ footer.foot{display:flex;flex-direction:column;align-items:flex-start;gap:14px;b
   <button id="helpBtn" class="helpbtn" data-act="help" aria-label="Ajuda d'aquesta pàgina"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M9.5 9.3a2.6 2.6 0 0 1 5 .9c0 1.8-2.5 2.2-2.5 3.8"/><circle cx="12" cy="17.3" r=".6" fill="currentColor"/></svg><span>Ajuda</span></button>
   <button class="top-centre" data-act="centreMenu" title="Edita les dades del centre"><span>Centre</span><b id="centreName"></b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/></svg></button>
   <button id="saveState" class="savepill ok" data-act="saveMenu"><i></i>Desat</button>
+  <a class="langsw" href="es/" hreflang="es" lang="es" title="Versión en castellano">ES</a>
 </div>
 <div class="example" id="exampleBanner" hidden><b>Esteu veient un centre d'exemple.</b> <span>Les dades són orientatives per explorar l'eina.</span> <button class="btn sm" data-act="newCentre">Comença amb el teu centre</button></div>
 <nav class="stepbar" id="stepbar" aria-label="Passos"></nav>

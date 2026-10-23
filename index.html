@@ -3697,7 +3697,17 @@ Object.assign(ACT, {
       if(hits.length===1) return isoSetPoint(+hits[0].lat, +hits[0].lon); save(); render(); }
     catch(e){ isoMsg(MAP && !$("#isoMap").hidden ? "No es pot connectar amb el cercador d'adreces. Clica al mapa per situar l'escola." : "Aquesta vista no pot connectar amb els serveis de mapes. Fes servir l'esquema aproximat, o obre el web des del vostre domini per calcular-les sobre els carrers."); } },
   isoPick: el => { const h = (UI.isoHits||[])[+el.dataset.i]; if(h) isoSetPoint(+h.lat, +h.lon); },
-  isoMode: el => { let m = UI.isoModes || ["walk","bike"]; m = m.includes(el.dataset.k) ? m.filter(x=>x!==el.dataset.k) : [...m, el.dataset.k]; UI.isoModes = m.length ? m : [el.dataset.k]; render(); },
+  isoMode: async el => { const k = el.dataset.k; let m = UI.isoModes || ["walk","bike"]; const on = !m.includes(k);
+    m = on ? [...m, k] : m.filter(x=>x!==k); if(!m.length) return; UI.isoModes = m; const I = isoState();
+    if(!on){ delete I[k]; save(); return render(); }
+    if(I.lat && (I.walk||I.bike)){
+      const speed = k==="walk" ? (+I.walkSpeed||4) : (+I.bikeSpeed||12);
+      if(I.approx) I[k] = ISO.times.map(t=>({t, geo: circleGeo(I.lat, I.lon, speed*1000/60*t/1.25)}));
+      else { try { isoMsg(k==="walk" ? "Calculant les isòcrones a peu…" : "Calculant les isòcrones en bicicleta…"); I[k] = await isoValhalla(I.lat, I.lon, k==="walk" ? "pedestrian" : "bicycle", speed); isoMsg(""); }
+        catch(e){ isoMsg("No s'ha pogut connectar amb el servei d'isòcrones des d'aquesta vista. Pots generar l'esquema aproximat o obrir el web des del vostre domini."); } }
+      UI.isoView = null; save();
+    }
+    render(); },
   isoRun: async el => { const I = isoState(); if(!I.lat) return; const modes = UI.isoModes || ["walk","bike"]; el.disabled = true;
     try {
       if(modes.includes("walk")){ isoMsg("Calculant les isòcrones a peu…"); I.walk = await isoValhalla(I.lat, I.lon, "pedestrian", +I.walkSpeed||4); } else delete I.walk;

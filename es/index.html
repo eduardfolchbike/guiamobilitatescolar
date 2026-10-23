@@ -3344,7 +3344,7 @@ async function readCSVFile(file){
   let bytes = buf;
   if(buf[0]===0x50 && buf[1]===0x4B){ bytes = await unzipFirstCSV(buf); }
   let txt = new TextDecoder("utf-8").decode(bytes);
-  if(txt.includes("�")) { try { txt = new TextDecoder("windows-1252").decode(bytes); } catch(e){} }
+  if(txt.includes("\uFFFD")) { try { txt = new TextDecoder("windows-1252").decode(bytes); } catch(e){} }
   return txt;
 }
 async function unzipFirstCSV(u8){

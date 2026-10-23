@@ -1208,7 +1208,11 @@ button.code:hover{outline:2px solid var(--red-line)}
 .doc .radar .r-lbl{fill:#2E2829} .doc .radar .r-num{fill:#6b6263} .doc .radar .r-ring,.doc .radar .r-axis{stroke:#e6d9da} .doc .radar .r-val{fill:#C81A2B;stroke:#C81A2B} .doc .radar .r-dot{fill:#C81A2B}
 #toast{position:fixed;left:50%;bottom:max(20px,env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--dark);color:#fff;padding:10px 18px;border-radius:99px;font-size:.85rem;font-weight:600;opacity:0;transition:.25s;z-index:60;max-width:calc(100% - 32px)}
 #toast.on{opacity:1;transform:translate(-50%,0)}
-footer.foot{border-top:1px solid var(--line);font-size:.75rem;color:var(--ink-3);padding-block:18px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.foot-logo{height:44px;width:auto;flex:none}
+.foot-t{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1 1 320px}
+.foot-t p{margin:0}
+.foot-t a{color:var(--ink-2)}
+footer.foot{display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px;border-top:1px solid var(--line);font-size:.75rem;color:var(--ink-3);padding-block:18px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 
 @media print{
   .top,#nav,.example,footer.foot,.doc-bar{display:none!important}
@@ -1289,7 +1293,7 @@ footer.foot{border-top:1px solid var(--line);font-size:.75rem;color:var(--ink-3)
   <nav id="nav" aria-label="Itinerari"></nav>
   <main id="main"></main>
 </div>
-<footer class="foot">Basat en la guia «Mobilitat escolar sostenible: Guia pràctica» (setembre de 2026), d'Eduard Folch. Les dades es desen només en aquest navegador; exporteu-les per compartir-les. L'eina funciona sense IA: totes les recomanacions surten de regles explícites.</footer>
+<footer class="foot"><img class="foot-logo" src="diba-logo.svg" alt="Diputació de Barcelona" onerror="this.remove()"><div class="foot-t"><p>La guia digital recull el contingut de la guia «Mobilitat escolar sostenible: Guia pràctica» (setembre de 2026), d'Eduard Folch, publicada en PDF per la Diputació de Barcelona. <a href="https://www.diba.cat/documents/d/mediambient/guia-mob-escolar-2026" target="_blank" rel="noopener">Descarrega la guia en PDF</a>.</p><p>Les dades es desen només en aquest navegador; exporteu-les per compartir-les. L'eina funciona sense IA: totes les recomanacions surten de regles explícites.</p></div></footer>
 <div id="modal" hidden role="dialog" aria-modal="true"><div class="modal-box" id="modalBody"></div></div>
 <div id="tour" hidden><div id="tourCatch"></div><div id="tourSpot"></div><div id="tourPop" role="dialog" aria-live="polite"></div></div>
 <div id="toast" role="status" aria-live="polite" hidden></div>

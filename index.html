@@ -1225,6 +1225,11 @@ button.code:hover{outline:2px solid var(--red-line)}
 .foot-t a{color:var(--ink-2)}
 footer.foot{display:flex;flex-direction:column;align-items:flex-start;gap:14px;border-top:1px solid var(--line);font-size:.75rem;color:var(--ink-3);padding-block:18px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 
+.iso-static{position:relative;width:100%;max-width:360px;aspect-ratio:1;overflow:hidden;border-radius:12px;background:#E9E4E2;border:1px solid var(--line)}
+.iso-tiles,.iso-static svg{position:absolute;inset:0;width:100%;height:100%}
+.iso-tiles img{position:absolute;display:block;height:auto}
+.iso-attr{position:absolute;right:0;bottom:0;background:rgba(255,255,255,.85);font:500 9px/1 Arial,sans-serif;color:#444;padding:2px 4px}
+.iso-res-svg .iso-static{max-width:360px}
 .print-head{display:none}
 .res-print{margin:0 0 14px}
 .iso-res-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;margin:10px 0}
@@ -2366,7 +2371,7 @@ function diagResultats(sc){
   const Iso = S.diag.iso; const isoOn = Iso && Iso.lat && (Iso.walk||Iso.bike);
   const reach = (arr) => arr.map(c=>`${c.t} min ≈ ${Math.round(Math.sqrt(geomArea(c.geo,Iso.lat)/Math.PI)/10)*10} m`).join(" · ");
   const isoCard = `<section class="card iso-res"><h2>Plànols d'isòcrones</h2>`
-    + (isoOn ? `<div class="iso-res-grid">${["walk","bike"].filter(k=>Iso[k]).map(k=>`<figure><div class="iso-res-svg">${isoSVG({...Iso,[k==="walk"?"bike":"walk"]:null}, 360)}</div><figcaption><b>${k==="walk"?"A peu":"En bicicleta"} (${(k==="walk"?Iso.walkSpeed||4:Iso.bikeSpeed||12)} km/h)</b><br>${reach(Iso[k])}</figcaption></figure>`).join("")}</div>
+    + (isoOn ? `<div class="iso-res-grid">${["walk","bike"].filter(k=>Iso[k]).map(k=>`<figure><div class="iso-res-svg">${isoStaticMap(Iso,[k],360)}</div><figcaption><b>${k==="walk"?"A peu":"En bicicleta"} (${(k==="walk"?Iso.walkSpeed||4:Iso.bikeSpeed||12)} km/h)</b><br>${reach(Iso[k])}</figcaption></figure>`).join("")}</div>
       <p class="muted small">${Iso.approx?"Esquema aproximat en línia recta.":"Calculat sobre la xarxa de carrers d'OpenStreetMap (Valhalla)."}${Iso.date?" Data: "+fmtDate(Iso.date)+".":""} La guia defineix l'entorn a 5 minuts a peu com uns 300–400 m i l'entorn a 5 minuts en bici com 1–1,5 km.</p>`
       : `<p class="muted">Encara no heu calculat cap plànol. <a href="#isocrones">Crea'l amb l'eina d'isòcrones</a> i apareixerà aquí.</p>`)
     + `</section>`;
@@ -3261,7 +3266,7 @@ function docBody(kind, opt={}){
       <h2>Oportunitats</h2><ul>${lines(S.com.oportunitats).map(x=>`<li>${esc(x)}</li>`).join("")||"<li>—</li>"}</ul>
       <h2>Interpretació per blocs</h2>${sc.blocs.filter(b=>b.total!=null).map(b=>`<div class="d-blk"><h3>${b.n}. ${b.t} · ${b.total}/${b.max} · ${LEVEL_T[b.level]}</h3><p>${b.desc[b.level]}</p>${b.crit&&b.crit.length?`<p><b>Punts crítics:</b> ${b.crit.map(c=>`${esc(c.t)} (${esc(c.a)})`).join("; ")}.</p>`:""}<p><b>Línia d'acció:</b> ${b.prop[b.level]}</p>${b.subs.length?`<p class="d-subs">${b.subs.map(s=>`${s} ${SUBS[s]}: ${sc.subs[s]??"–"}`).join(" · ")}</p>`:""}</div>`).join("")}
       ${sc.heat.avg!=null?`<h2>Indicadors transversals: calor i confort climàtic</h2><div class="d-blk"><h3>${sc.heat.avg.toFixed(1).replace(".",",")}/4 · ${LEVEL_T[sc.heat.level]}</h3><p>${HEAT_TXT.desc[sc.heat.level]}</p><p><b>Línia d'acció:</b> ${HEAT_TXT.prop[sc.heat.level]}</p><p class="d-subs">${sc.heat.items.filter(i=>i.sc!=null).map(i=>`${i.lbl}: ${i.sc}`).join(" · ")}</p></div>`:""}
-      ${S.diag.iso && (S.diag.iso.walk||S.diag.iso.bike)?`<h2>Plànol d'isòcrones</h2><div class="d-two"><div>${isoSVG(S.diag.iso, 320)}</div><div><p>${S.diag.iso.walk?`A peu (${S.diag.iso.walkSpeed||4} km/h): `+S.diag.iso.walk.map(c=>`${c.t} min ≈ ${Math.round(Math.sqrt(geomArea(c.geo,S.diag.iso.lat)/Math.PI)/10)*10} m`).join(" · "):""}</p><p>${S.diag.iso.bike?`En bicicleta (${S.diag.iso.bikeSpeed||12} km/h): `+S.diag.iso.bike.map(c=>`${c.t} min ≈ ${Math.round(Math.sqrt(geomArea(c.geo,S.diag.iso.lat)/Math.PI)/10)*10} m`).join(" · "):""}</p><p class="d-subs">${S.diag.iso.approx?"Esquema aproximat en línia recta.":"Calculat sobre la xarxa de carrers d'OpenStreetMap (Valhalla)."} Línia contínua: a peu. Línia discontínua: bicicleta.</p></div></div>`:""}
+      ${S.diag.iso && (S.diag.iso.walk||S.diag.iso.bike)?`<h2>Plànol d'isòcrones</h2><div class="d-two"><div>${isoStaticMap(S.diag.iso,["walk","bike"],360)}</div><div><p>${S.diag.iso.walk?`A peu (${S.diag.iso.walkSpeed||4} km/h): `+S.diag.iso.walk.map(c=>`${c.t} min ≈ ${Math.round(Math.sqrt(geomArea(c.geo,S.diag.iso.lat)/Math.PI)/10)*10} m`).join(" · "):""}</p><p>${S.diag.iso.bike?`En bicicleta (${S.diag.iso.bikeSpeed||12} km/h): `+S.diag.iso.bike.map(c=>`${c.t} min ≈ ${Math.round(Math.sqrt(geomArea(c.geo,S.diag.iso.lat)/Math.PI)/10)*10} m`).join(" · "):""}</p><p class="d-subs">${S.diag.iso.approx?"Esquema aproximat en línia recta.":"Calculat sobre la xarxa de carrers d'OpenStreetMap (Valhalla)."} Línia contínua: a peu. Línia discontínua: bicicleta.</p></div></div>`:""}
       ${sv}
       ${a.s_pri||a.s_com?`<h2>Síntesi del treball de camp</h2>${a.s_pri?`<p><b>Mesures prioritàries:</b> ${esc(a.s_pri)}</p>`:""}${a.s_com?`<p><b>Observacions:</b> ${esc(a.s_com)}</p>`:""}`:""}`}; }
   if(kind==="enquesta"){ const intro = S.survey.intro || SURVEY_INTRO.replace("{escola}", C.nom||"l'escola");
@@ -3285,7 +3290,7 @@ function docBody(kind, opt={}){
       <h2>Projectes</h2><ul>${ids.map(id=>`<li><b>${FITXES[id].t}</b>: ${projProgress(id)}% de les tasques fetes</li>`).join("")||"<li>—</li>"}</ul>
       <h2>Valoració</h2><p>${esc(S.com.memoria||"")}</p>`}; }
 }
-const DOC_CSS = `body{font-family:Montserrat,Arial,sans-serif;color:#2a2526;max-width:780px;margin:0 auto;padding:32px 24px;line-height:1.5;font-size:14px}h1{color:#c81a2b;font-size:24px;margin:.2em 0}h2{color:#c81a2b;font-size:17px;margin:1.4em 0 .4em}h3{font-size:14px;margin:1em 0 .3em}.d-kicker,.kicker{text-transform:uppercase;letter-spacing:.08em;font-size:11px;color:#8a7f80;margin:0}.d-sub{color:#5d5556}table{width:100%;border-collapse:collapse;margin:.4em 0;font-size:13px}th,td{border-bottom:1px solid #eadfe0;padding:6px 8px;text-align:left;vertical-align:top}th{background:#faf3f4}.n{text-align:right}.d-two{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:center}.d-blk{border-left:3px solid #c81a2b;padding:2px 12px;margin:10px 0;break-inside:avoid}.d-subs,.d-note{color:#6b6263;font-size:12px}.d-opts{list-style:none;padding:0;columns:2;margin:.2em 0}.d-line{border-bottom:1px solid #999;height:22px}.d-q{break-inside:avoid;margin-bottom:8px}.sign{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:28px 20px;margin-top:40px}.sign span{display:block;border-bottom:1px solid #555;height:40px;margin-bottom:4px}.doc-manifest h2{color:#2a2526;font-size:22px}.doc-manifest ol li{margin:.3em 0}.radar{width:100%;height:auto}.r-ring{fill:none;stroke:#e6d9da}.r-axis{stroke:#e6d9da}.r-val{fill:rgba(200,26,43,.18);stroke:#c81a2b;stroke-width:2}.r-dot{fill:#c81a2b}.r-lbl{font-size:10px;fill:#2a2526;font-weight:600}.r-num{font-size:9px;fill:#6b6263}.noprint{position:fixed;top:12px;right:12px;background:#c81a2b;color:#fff;border:0;border-radius:6px;padding:10px 14px;font:600 13px Montserrat,Arial,sans-serif;cursor:pointer}@media print{.noprint{display:none}body{padding:0}}`;
+const DOC_CSS = `body{font-family:Montserrat,Arial,sans-serif;color:#2a2526;max-width:780px;margin:0 auto;padding:32px 24px;line-height:1.5;font-size:14px}h1{color:#c81a2b;font-size:24px;margin:.2em 0}h2{color:#c81a2b;font-size:17px;margin:1.4em 0 .4em}h3{font-size:14px;margin:1em 0 .3em}.d-kicker,.kicker{text-transform:uppercase;letter-spacing:.08em;font-size:11px;color:#8a7f80;margin:0}.d-sub{color:#5d5556}table{width:100%;border-collapse:collapse;margin:.4em 0;font-size:13px}th,td{border-bottom:1px solid #eadfe0;padding:6px 8px;text-align:left;vertical-align:top}th{background:#faf3f4}.n{text-align:right}.d-two{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:center}.d-blk{border-left:3px solid #c81a2b;padding:2px 12px;margin:10px 0;break-inside:avoid}.d-subs,.d-note{color:#6b6263;font-size:12px}.d-opts{list-style:none;padding:0;columns:2;margin:.2em 0}.d-line{border-bottom:1px solid #999;height:22px}.d-q{break-inside:avoid;margin-bottom:8px}.sign{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:28px 20px;margin-top:40px}.sign span{display:block;border-bottom:1px solid #555;height:40px;margin-bottom:4px}.doc-manifest h2{color:#2a2526;font-size:22px}.doc-manifest ol li{margin:.3em 0}.radar{width:100%;height:auto}.r-ring{fill:none;stroke:#e6d9da}.r-axis{stroke:#e6d9da}.r-val{fill:rgba(200,26,43,.18);stroke:#c81a2b;stroke-width:2}.r-dot{fill:#c81a2b}.r-lbl{font-size:10px;fill:#2a2526;font-weight:600}.r-num{font-size:9px;fill:#6b6263}.noprint{position:fixed;top:12px;right:12px;background:#c81a2b;color:#fff;border:0;border-radius:6px;padding:10px 14px;font:600 13px Montserrat,Arial,sans-serif;cursor:pointer}@media print{.noprint{display:none}body{padding:0}}.iso-static{position:relative;width:100%;max-width:360px;aspect-ratio:1;overflow:hidden;border-radius:8px;background:#E9E4E2;border:1px solid #ddd}.iso-tiles,.iso-static svg{position:absolute;left:0;top:0;width:100%;height:100%}.iso-tiles img{position:absolute;display:block;height:auto}.iso-attr{position:absolute;right:0;bottom:0;background:rgba(255,255,255,.85);font:500 9px/1 Arial,sans-serif;color:#444;padding:2px 4px}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}`;
 function docStandalone(d){
   return `<!doctype html><html lang="ca"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(d.t)} · ${esc(S.centre.nom||"")}</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap"><style>${DOC_CSS}</style></head><body><button class="noprint" onclick="window.print()">Imprimeix o desa en PDF</button>${d.h}<p style="margin-top:40px;color:#8a7f80;font-size:11px">Generat amb l'eina de la Guia pràctica de mobilitat escolar sostenible · ${fmtDate(today())}</p></body></html>`;
 }
@@ -3678,6 +3683,34 @@ function isoSVG(I, size=420){
       <line x1="16" y1="${size-18}" x2="${16+nice*s}" y2="${size-18}" stroke="#2E2829" stroke-width="2"/><text x="16" y="${size-24}">${nice>=1000?nice/1000+" km":nice+" m"}</text>
       <text x="${size-22}" y="26" text-anchor="middle" font-weight="700">N</text><path d="M${size-22} 30 l-5 12 h10z" fill="#2E2829"/>
     </g></svg>`;
+}
+
+/* Plànol estàtic amb mapa base (rajoles d'OpenStreetMap) i isòcrones en SVG: funciona a pantalla, en imprimir i als documents */
+function isoStaticMap(I, modes, size=360){
+  const sets = modes.filter(k=>I && I[k]); if(!I || !I.lat || !sets.length) return `<div class="iso-empty">${isoSVG(I,size)}</div>`;
+  const rings = g => g.type==="Polygon" ? [g.coordinates] : g.coordinates;
+  let la0=90, la1=-90, lo0=180, lo1=-180;
+  sets.forEach(k=>I[k].forEach(c=>rings(c.geo).forEach(poly=>poly[0].forEach(([lo,la])=>{ la0=Math.min(la0,la); la1=Math.max(la1,la); lo0=Math.min(lo0,lo); lo1=Math.max(lo1,lo); }))));
+  const wx = (lo,z) => 256*Math.pow(2,z)*(lo+180)/360;
+  const wy = (la,z) => { const r = la*Math.PI/180; return 256*Math.pow(2,z)*(1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2; };
+  let z = 17; while(z>8 && (Math.abs(wx(lo1,z)-wx(lo0,z))>size*0.86 || Math.abs(wy(la0,z)-wy(la1,z))>size*0.86)) z--;
+  const ox = (wx(lo0,z)+wx(lo1,z))/2 - size/2, oy = (wy(la0,z)+wy(la1,z))/2 - size/2;
+  const n = Math.pow(2,z); const imgs = [];
+  for(let tx=Math.floor(ox/256); tx<=Math.floor((ox+size)/256); tx++) for(let ty=Math.floor(oy/256); ty<=Math.floor((oy+size)/256); ty++){
+    if(ty<0 || ty>=n) continue; const x = ((tx%n)+n)%n;
+    imgs.push(`<img src="https://tile.openstreetmap.org/${z}/${x}/${ty}.png" alt="" loading="eager" crossorigin="anonymous" style="left:${((tx*256-ox)/size*100).toFixed(3)}%;top:${((ty*256-oy)/size*100).toFixed(3)}%;width:${(256/size*100).toFixed(3)}%" onerror="this.remove()">`);
+  }
+  const pt = ([lo,la]) => (wx(lo,z)-ox).toFixed(1)+","+(wy(la,z)-oy).toFixed(1);
+  const path = g => rings(g).map(poly=>poly.map(r=>"M"+r.map(pt).join("L")+"Z").join("")).join("");
+  const layer = (k) => I[k].map((c,i)=>({c,i})).reverse().map(({c,i})=>{ const bike = k==="bike", col = (bike?ISO.bikeColors:ISO.walkColors)[i];
+    return `<path d="${path(c.geo)}" fill="${col}" fill-opacity="${bike?.06:.2}" stroke="${col}" stroke-width="${bike?2.2:2.4}" ${bike?'stroke-dasharray="6 5"':""} fill-rule="evenodd"/>`; }).join("");
+  const mpp = 156543.03392*Math.cos(I.lat*Math.PI/180)/n; const nice = [50,100,250,500,1000,2000,5000].find(v=>v/mpp>size*0.16) || 5000;
+  const [cx,cy] = pt([I.lon,I.lat]).split(",");
+  return `<div class="iso-static" style="--sz:${size}"><div class="iso-tiles">${imgs.join("")}</div>
+    <svg viewBox="0 0 ${size} ${size}" role="img" aria-label="Esquema d'isòcrones al voltant de l'escola">${sets.map(layer).join("")}
+      <circle cx="${cx}" cy="${cy}" r="7" fill="#DA1B2E" stroke="#fff" stroke-width="3"/>
+      <g font-family="Montserrat,Arial,sans-serif" font-size="11" font-weight="700" fill="#2E2829"><rect x="8" y="${size-30}" width="${nice/mpp+16}" height="22" rx="4" fill="#fff" fill-opacity=".85"/><line x1="16" y1="${size-14}" x2="${16+nice/mpp}" y2="${size-14}" stroke="#2E2829" stroke-width="2"/><text x="16" y="${size-19}">${nice>=1000?nice/1000+" km":nice+" m"}</text></g>
+    </svg><span class="iso-attr">© OpenStreetMap</span></div>`;
 }
 
 function isoMapInit(){

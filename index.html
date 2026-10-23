@@ -3537,7 +3537,12 @@ function exampleState(){
 const ISO = {
   valhalla: "https://valhalla1.openstreetmap.de/isochrone",
   nominatim: "https://nominatim.openstreetmap.org/search",
-  tiles: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+  /* Mapes de fons sense clau d'API; si un falla, es prova el següent */
+  tileSets: [
+    {name:"OpenStreetMap", url:"https://tile.openstreetmap.org/{z}/{x}/{y}.png", opt:{maxZoom:19, attribution:"© OpenStreetMap"}},
+    {name:"OpenStreetMap França", url:"https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png", opt:{maxZoom:20, subdomains:"abc", attribution:"© OpenStreetMap · OSM França"}},
+    {name:"CARTO", url:"https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", opt:{maxZoom:19, subdomains:"abcd", attribution:"© OpenStreetMap · © CARTO"}}
+  ],
   times: [5, 10, 15],
   walkColors: ["#DA1B2E", "#E85A68", "#F3A3AB"],
   bikeColors: ["#3B3535", "#6F6566", "#A39A9B"]
@@ -3631,9 +3636,17 @@ function isoMapInit(){
   if(!window.L){ el.hidden = true; $("#isoNoMap").hidden = false; return; }
   const v = UI.isoView;
   MAP = L.map(el, {scrollWheelZoom:false, zoomControl:true}).setView(v ? v[0] : (I.lat ? [I.lat, I.lon] : [41.75, 2.0]), v ? v[1] : (I.lat ? 14 : 8));
-  let errs = 0;
-  const tiles = L.tileLayer(ISO.tiles, {subdomains:"abcd", maxZoom:19, attribution:"© OpenStreetMap · © CARTO"}).addTo(MAP);
-  tiles.on("tileerror", ()=>{ errs++; if(errs===4){ el.hidden = true; $("#isoNoMap").hidden = false; isoMsg("Aquesta vista no pot carregar els mapes externs. Es mostra l'esquema sense mapa de fons."); } });
+  let ti = 0, errs = 0, layer = null;
+  const useTiles = () => {
+    if(layer) MAP.removeLayer(layer);
+    const T = ISO.tileSets[ti]; errs = 0;
+    layer = L.tileLayer(T.url, {...T.opt, crossOrigin:false}).addTo(MAP);
+    layer.on("tileload", ()=>{ errs = 0; });
+    layer.on("tileerror", ()=>{ if(++errs < 4) return;
+      if(ti < ISO.tileSets.length-1){ ti++; isoMsg("El mapa de fons no carrega; es prova "+ISO.tileSets[ti].name+"…"); useTiles(); }
+      else { el.hidden = true; $("#isoNoMap").hidden = false; isoMsg("No es poden carregar els mapes de fons (xarxa o bloqueig del navegador). Es mostra l'esquema sense mapa."); } });
+  };
+  useTiles();
   const drawLayer = (arr, cols, bike) => (arr||[]).slice().reverse().forEach((c,ri)=>{ const i = arr.length-1-ri;
     L.geoJSON(c.geo, {style:{color:cols[i], weight:bike?1.5:2, dashArray:bike?"6 5":null, fillColor:cols[i], fillOpacity:bike?.04:.18}}).bindTooltip(`${bike?"Bicicleta":"A peu"} · ${c.t} min`).addTo(MAP); });
   drawLayer(I.bike, ISO.bikeColors, true); drawLayer(I.walk, ISO.walkColors, false);

@@ -87,13 +87,13 @@ var T={
 ca:{tag:"Eina digital · Accés per sol·licitud",h1:"Guia de Mobilitat Escolar",lead:"Una eina guiada, pas a pas, per impulsar projectes de mobilitat escolar sostenible.",
  bul:["Comissió, diagnosi i enquesta a les famílies","Fitxes de solucions: camí escolar, bicibús, pedibús…","Informe imprimible per compartir i presentar"],
  reqH:"Sol·licita l'accés",reqP:"Deixa'ns el teu correu i, un cop aprovada la sol·licitud, rebràs el codi d'accés.",email:"Correu electrònic",org:"Ajuntament, escola o entitat (opcional)",reqBtn:"Demana l'accés",
- reqOk:"Sol·licitud enviada. Rebràs el codi per correu quan s'aprovi.",reqErr:"No s'ha pogut enviar. Torna-ho a provar d'aquí una estona.",reqBad:"Escriu un correu vàlid.",
+ reqOk:"Sol·licitud enviada. Rebràs el codi per correu quan s'aprovi.",reqErr:"No s'ha pogut enviar.",mailLink:"Envia la sol·licitud per correu",mailSub:"Sol·licitud d'accés · Guia de Mobilitat Escolar",mailBody:"Hola, sol·licito accés a la guia.\n\nCorreu: ",reqBad:"Escriu un correu vàlid.",
  codeH:"Ja tinc el codi",codeP:"Introdueix el codi que has rebut per entrar a l'eina.",code:"Codi d'accés",codeBtn:"Entra a l'eina",codeBad:"Codi incorrecte.",codeWait:"Comprovant…",
  fine:"Les teves dades només s'utilitzen per gestionar la sol·licitud d'accés.",other:"Castellano",otherHref:"es/"},
 es:{tag:"Herramienta digital · Acceso por solicitud",h1:"Guía de Movilidad Escolar",lead:"Una herramienta guiada, paso a paso, para impulsar proyectos de movilidad escolar sostenible.",
  bul:["Comisión, diagnóstico y encuesta a las familias","Fichas de soluciones: camino escolar, bicibús, pedibús…","Informe imprimible para compartir y presentar"],
  reqH:"Solicita el acceso",reqP:"Déjanos tu correo y, una vez aprobada la solicitud, recibirás el código de acceso.",email:"Correo electrónico",org:"Ayuntamiento, escuela o entidad (opcional)",reqBtn:"Pedir acceso",
- reqOk:"Solicitud enviada. Recibirás el código por correo cuando se apruebe.",reqErr:"No se ha podido enviar. Inténtalo de nuevo en un rato.",reqBad:"Escribe un correo válido.",
+ reqOk:"Solicitud enviada. Recibirás el código por correo cuando se apruebe.",reqErr:"No se ha podido enviar.",mailLink:"Envía la solicitud por correo",mailSub:"Solicitud de acceso · Guía de Movilidad Escolar",mailBody:"Hola, solicito acceso a la guía.\n\nCorreo: ",reqBad:"Escribe un correo válido.",
  codeH:"Ya tengo el código",codeP:"Introduce el código que has recibido para entrar en la herramienta.",code:"Código de acceso",codeBtn:"Entrar en la herramienta",codeBad:"Código incorrecto.",codeWait:"Comprobando…",
  fine:"Tus datos solo se utilizan para gestionar la solicitud de acceso.",other:"Català",otherHref:"../"}
 }[LANG];
@@ -130,9 +130,13 @@ document.getElementById("req").addEventListener("submit",async function(ev){
   try{
     var r=await fetch("https://formsubmit.co/ajax/"+OWNER,{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},
       body:JSON.stringify({email:em,organitzacio:document.getElementById("org").value.trim(),idioma:LANG,_subject:"Sol·licitud d'accés · Guia de Mobilitat Escolar",_template:"table",_captcha:"false"})});
-    var j=await r.json();if(!r.ok||String(j.success)==="false")throw 0;
+    var j=await r.json();if(!r.ok||String(j.success)==="false"){try{console.warn("formsubmit:",j.message)}catch(_){}throw 0}
     m.className="msg ok";m.textContent=T.reqOk;document.getElementById("req").reset();
-  }catch(e){m.className="msg err";m.textContent=T.reqErr}
+  }catch(e){
+    var sub=encodeURIComponent(T.mailSub),body=encodeURIComponent(T.mailBody+em+(document.getElementById("org").value?"\n"+document.getElementById("org").value:""));
+    m.className="msg err";m.innerHTML="";m.appendChild(document.createTextNode(T.reqErr+" "));
+    var a=document.createElement("a");a.href="mailto:"+OWNER+"?subject="+sub+"&body="+body;a.textContent=T.mailLink;a.style.color="inherit";m.appendChild(a);
+  }
   b.disabled=false;
 });
 })();

@@ -18,5 +18,8 @@ Serveis externs que fa servir l'eina d'isòcrones: mapa d'OpenStreetMap / CARTO,
 
 ## Versions
 
-- Català: `index.html`
-- Castellano: `es/index.html` (selector CA/ES a la capçalera de l'eina)
+- Català: `index.html` (landing d'accés) · Castellano: `es/index.html`
+
+## Accés
+
+L'eina està xifrada (`app/ca.bin`, `app/es.bin`) i s'obre amb un codi d'accés des de la landing, on es pot demanar l'accés per correu. Els fitxers es generen amb `build_gate.py` (fora d'aquest repositori).

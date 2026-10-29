@@ -130,11 +130,11 @@ document.getElementById("req").addEventListener("submit",async function(ev){
   try{
     var r=await fetch("https://formsubmit.co/ajax/"+OWNER,{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},
       body:JSON.stringify({email:em,organitzacio:document.getElementById("org").value.trim(),idioma:LANG,_subject:"Sol·licitud d'accés · Guia de Mobilitat Escolar",_template:"table",_captcha:"false"})});
-    var j=await r.json();if(!r.ok||String(j.success)==="false"){try{console.warn("formsubmit:",j.message)}catch(_){}throw 0}
+    var j=await r.json();if(!r.ok||String(j.success)==="false"){window.__fsErr=String(j.message||r.status);throw 0}
     m.className="msg ok";m.textContent=T.reqOk;document.getElementById("req").reset();
   }catch(e){
     var sub=encodeURIComponent(T.mailSub),body=encodeURIComponent(T.mailBody+em+(document.getElementById("org").value?"\n"+document.getElementById("org").value:""));
-    m.className="msg err";m.innerHTML="";m.appendChild(document.createTextNode(T.reqErr+" "));
+    m.className="msg err";m.innerHTML="";m.appendChild(document.createTextNode(T.reqErr+(window.__fsErr?" ["+window.__fsErr.slice(0,160)+"] ":(e&&e.message?" ["+e.message.slice(0,80)+"] ":" "))));window.__fsErr=0;
     var a=document.createElement("a");a.href="mailto:"+OWNER+"?subject="+sub+"&body="+body;a.textContent=T.mailLink;a.style.color="inherit";m.appendChild(a);
   }
   b.disabled=false;

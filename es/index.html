@@ -34,7 +34,7 @@ button.ghost{background:var(--ink)}button.ghost:hover{background:#000}
 .msg{margin-top:12px;font-size:.92rem;font-weight:600;min-height:1.3em}
 .msg.ok{color:var(--ok)}.msg.err{color:var(--red-ink)}
 .sep{height:1px;background:var(--line)}
-.hp{position:absolute;left:-9999px;opacity:0}
+.mailbtn{display:block;margin-top:6px;text-align:center;text-decoration:none;font:700 1rem var(--f);padding:14px 18px;border-radius:10px;background:var(--red);color:#fff}.mailbtn:hover{background:var(--red-ink)}.addr{margin-top:10px;font-size:.9rem;color:var(--ink2);text-align:center}.fine a{color:var(--red-ink);font-weight:600}
 .fine{font-size:.78rem;color:var(--ink2)}
 #boot{display:none;min-height:100vh;align-items:center;justify-content:center;font-weight:700;color:var(--ink2)}
 body.booting .wrap{display:none}body.booting #boot{display:flex}
@@ -56,15 +56,8 @@ body.booting .wrap{display:none}body.booting #boot{display:flex}
     <div>
       <h2 data-t="reqH"></h2>
       <p class="sub" data-t="reqP"></p>
-      <form id="req" novalidate>
-        <label for="em" data-t="email"></label>
-        <input id="em" type="email" autocomplete="email" required>
-        <label for="org" data-t="org"></label>
-        <input id="org" type="text" autocomplete="organization">
-        <input class="hp" id="hp" type="text" tabindex="-1" autocomplete="off" aria-hidden="true">
-        <button type="submit" id="reqBtn" data-t="reqBtn"></button>
-        <div class="msg" id="reqMsg" role="status"></div>
-      </form>
+      <a class="mailbtn" id="mailBtn" href="#"></a>
+      <p class="addr" id="addr"></p>
     </div>
     <div class="sep"></div>
     <div>
@@ -77,25 +70,25 @@ body.booting .wrap{display:none}body.booting #boot{display:flex}
         <div class="msg" id="codMsg" role="status"></div>
       </form>
     </div>
-    <p class="fine" data-t="fine"></p>
+    <p class="fine" id="fine"></p>
   </section>
 </div>
 <script>
 (function(){
-var LANG="es",ROOT="../app/",ITER=250000,OWNER="eduard.folch@gmail.com";
+var LANG="es",ROOT="../app/",ITER=250000,OWNER="hola@eduardfolch.bike";
 var T={
 ca:{tag:"Eina digital · Accés per sol·licitud",h1:"Guia de Mobilitat Escolar",lead:"Una eina guiada, pas a pas, per impulsar projectes de mobilitat escolar sostenible.",
  bul:["Comissió, diagnosi i enquesta a les famílies","Fitxes de solucions: camí escolar, bicibús, pedibús…","Informe imprimible per compartir i presentar"],
- reqH:"Sol·licita l'accés",reqP:"Deixa'ns el teu correu i, un cop aprovada la sol·licitud, rebràs el codi d'accés.",email:"Correu electrònic",org:"Ajuntament, escola o entitat (opcional)",reqBtn:"Demana l'accés",
- reqOk:"Sol·licitud enviada. Rebràs el codi per correu quan s'aprovi.",reqErr:"No s'ha pogut enviar.",mailLink:"Envia la sol·licitud per correu",mailSub:"Sol·licitud d'accés · Guia de Mobilitat Escolar",mailBody:"Hola, sol·licito accés a la guia.\n\nCorreu: ",reqBad:"Escriu un correu vàlid.",
+ reqH:"Sol·licita l'accés",reqP:"Envia un correu a l'adreça següent i t'enviarem un codi d'accés per entrar a l'eina.",reqBtn:"Demana el codi per correu",mailSub:"Sol·licitud de codi d'accés · Guia de Mobilitat Escolar",mailBody:"Hola, voldria obtenir un codi d'accés a la guia digital.\n\nNom i ens/escola:\n",
+ mailSub:"Sol·licitud d'accés · Guia de Mobilitat Escolar",mailBody:"Hola, sol·licito accés a la guia.\n\nCorreu: ",
  codeH:"Ja tinc el codi",codeP:"Introdueix el codi que has rebut per entrar a l'eina.",code:"Codi d'accés",codeBtn:"Entra a l'eina",codeBad:"Codi incorrecte.",codeWait:"Comprovant…",
- fine:"Les teves dades només s'utilitzen per gestionar la sol·licitud d'accés.",other:"Castellano",otherHref:"es/"},
+ fine:"Aquest és un suport no oficial. La guia oficial de la Diputació de Barcelona es pot descarregar en PDF a",finelink:"aquest enllaç",other:"Castellano",otherHref:"es/"},
 es:{tag:"Herramienta digital · Acceso por solicitud",h1:"Guía de Movilidad Escolar",lead:"Una herramienta guiada, paso a paso, para impulsar proyectos de movilidad escolar sostenible.",
  bul:["Comisión, diagnóstico y encuesta a las familias","Fichas de soluciones: camino escolar, bicibús, pedibús…","Informe imprimible para compartir y presentar"],
- reqH:"Solicita el acceso",reqP:"Déjanos tu correo y, una vez aprobada la solicitud, recibirás el código de acceso.",email:"Correo electrónico",org:"Ayuntamiento, escuela o entidad (opcional)",reqBtn:"Pedir acceso",
- reqOk:"Solicitud enviada. Recibirás el código por correo cuando se apruebe.",reqErr:"No se ha podido enviar.",mailLink:"Envía la solicitud por correo",mailSub:"Solicitud de acceso · Guía de Movilidad Escolar",mailBody:"Hola, solicito acceso a la guía.\n\nCorreo: ",reqBad:"Escribe un correo válido.",
+ reqH:"Solicita el acceso",reqP:"Envía un correo a la dirección siguiente y te enviaremos un código de acceso para entrar en la herramienta.",reqBtn:"Pedir el código por correo",mailSub:"Solicitud de código de acceso · Guía de Movilidad Escolar",mailBody:"Hola, querría obtener un código de acceso a la guía digital.\n\nNombre y ayuntamiento/escuela:\n",
+ mailSub:"Solicitud de acceso · Guía de Movilidad Escolar",mailBody:"Hola, solicito acceso a la guía.\n\nCorreo: ",
  codeH:"Ya tengo el código",codeP:"Introduce el código que has recibido para entrar en la herramienta.",code:"Código de acceso",codeBtn:"Entrar en la herramienta",codeBad:"Código incorrecto.",codeWait:"Comprobando…",
- fine:"Tus datos solo se utilizan para gestionar la solicitud de acceso.",other:"Català",otherHref:"../"}
+ fine:"Este es un soporte no oficial. La guía oficial de la Diputación de Barcelona se puede descargar en PDF en",finelink:"este enlace",other:"Català",otherHref:"../"}
 }[LANG];
 document.querySelectorAll("[data-t]").forEach(function(e){e.textContent=T[e.getAttribute("data-t")]});
 document.getElementById("bul").innerHTML=T.bul.map(function(b){return "<li>"+b+"</li>"}).join("");
@@ -122,17 +115,11 @@ document.getElementById("cod").addEventListener("submit",async function(ev){
   try{var html=await unlock(c);try{localStorage.setItem(KEY,c)}catch(e){}enter(html)}
   catch(e){b.disabled=false;m.className="msg err";m.textContent=T.codeBad}
 });
-document.getElementById("req").addEventListener("submit",async function(ev){
-  ev.preventDefault();var m=document.getElementById("reqMsg"),b=document.getElementById("reqBtn"),em=document.getElementById("em").value.trim();
-  if(document.getElementById("hp").value)return;
-  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){m.className="msg err";m.textContent=T.reqBad;return}
-  b.disabled=true;m.className="msg";m.textContent="…";
-  var f=document.createElement("form");f.method="POST";f.action="https://formsubmit.co/"+OWNER;f.style.display="none";
-  var F={email:em,organitzacio:document.getElementById("org").value.trim(),idioma:LANG,_subject:"Sol·licitud d'accés · Guia de Mobilitat Escolar",_template:"table",_captcha:"false",_next:location.origin+location.pathname+"?enviat=1"};
-  Object.keys(F).forEach(function(k){var i=document.createElement("input");i.type="hidden";i.name=k;i.value=F[k];f.appendChild(i)});
-  document.body.appendChild(f);f.submit();
-});
-if(/[?&]enviat=1/.test(location.search)){var rm=document.getElementById("reqMsg");rm.className="msg ok";rm.textContent=T.reqOk;try{history.replaceState(null,"",location.pathname)}catch(e){}}
+var mb=document.getElementById("mailBtn");mb.textContent=T.reqBtn;
+mb.href="mailto:"+OWNER+"?subject="+encodeURIComponent(T.mailSub)+"&body="+encodeURIComponent(T.mailBody);
+document.getElementById("addr").textContent=OWNER;
+var fn=document.getElementById("fine");fn.appendChild(document.createTextNode(T.fine+" "));
+var fa=document.createElement("a");fa.href="https://www.diba.cat/documents/d/mediambient/guia-mob-escolar-2026";fa.target="_blank";fa.rel="noopener";fa.textContent=T.finelink;fn.appendChild(fa);fn.appendChild(document.createTextNode("."));
 })();
 </script>
 </body>

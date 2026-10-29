@@ -34,11 +34,11 @@ button.ghost{background:var(--ink)}button.ghost:hover{background:#000}
 .msg{margin-top:12px;font-size:.92rem;font-weight:600;min-height:1.3em}
 .msg.ok{color:var(--ok)}.msg.err{color:var(--red-ink)}
 .sep{height:1px;background:var(--line)}
-.mailbtn{display:block;margin-top:6px;text-align:center;text-decoration:none;font:700 1rem var(--f);padding:14px 18px;border-radius:10px;background:var(--red);color:#fff}.mailbtn:hover{background:var(--red-ink)}.addr{margin-top:10px;font-size:.9rem;color:var(--ink2);text-align:center}.notice{background:#FBE3E6;border:2px solid #F3BAC1;border-left:8px solid var(--red);border-radius:14px;padding:20px 22px}
-.notice b{display:block;font-weight:800;font-size:1.05rem;color:var(--red-ink);margin-bottom:6px}
-.notice p{font-size:.95rem;color:var(--ink);margin-bottom:12px}
-.notice a{display:inline-block;background:#fff;color:var(--red-ink);border:2px solid var(--red);border-radius:10px;padding:9px 16px;font-weight:700;font-size:.92rem;text-decoration:none}
-.notice a:hover{background:var(--red);color:#fff}
+.mailbtn{display:block;margin-top:6px;text-align:center;text-decoration:none;font:700 1rem var(--f);padding:14px 18px;border-radius:10px;background:var(--red);color:#fff}.mailbtn:hover{background:var(--red-ink)}.addr{margin-top:10px;font-size:.9rem;color:var(--ink2);text-align:center}.notice{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.notice b{display:block;font-weight:700;font-size:.9rem;color:var(--ink);margin-bottom:4px}
+.notice p{font-size:.85rem;color:var(--ink2);margin-bottom:8px}
+.notice a{color:var(--red-ink);font-weight:600;font-size:.85rem;text-decoration:underline;text-underline-offset:2px}
+.notice a:hover{color:var(--red)}
 .fine{font-size:.78rem;color:var(--ink2)}
 #boot{display:none;min-height:100vh;align-items:center;justify-content:center;font-weight:700;color:var(--ink2)}
 body.booting .wrap{display:none}body.booting #boot{display:flex}
@@ -57,11 +57,6 @@ body.booting .wrap{display:none}body.booting #boot{display:flex}
     <div class="by">Eduard Folch</div>
   </section>
   <section class="panel">
-    <aside class="notice" role="note">
-      <b id="nTitle"></b>
-      <p id="nText"></p>
-      <a id="nLink" href="https://www.diba.cat/documents/d/mediambient/guia-mob-escolar-2026" target="_blank" rel="noopener"></a>
-    </aside>
     <div>
       <h2 data-t="reqH"></h2>
       <p class="sub" data-t="reqP"></p>
@@ -79,6 +74,11 @@ body.booting .wrap{display:none}body.booting #boot{display:flex}
         <div class="msg" id="codMsg" role="status"></div>
       </form>
     </div>
+    <aside class="notice" role="note">
+      <b id="nTitle"></b>
+      <p id="nText"></p>
+      <a id="nLink" href="https://www.diba.cat/documents/d/mediambient/guia-mob-escolar-2026" target="_blank" rel="noopener"></a>
+    </aside>
   </section>
 </div>
 <script>
